@@ -182,3 +182,55 @@ export async function getOptionChain(params: {
     snapshots,
   };
 }
+
+export async function getMostActives(): Promise<Array<{ symbol: string; volume: number }>> {
+  const url = `${DATA_ORIGIN}/v1beta1/screener/stocks/most-actives?by=volume&top=30`;
+  const body = await getJson<{ most_actives?: Array<{ symbol: string; volume: number }> }>(url, "data");
+  return body.most_actives ?? [];
+}
+
+export async function getStockMovers(): Promise<Array<{ symbol: string; price?: number }>> {
+  const url = `${DATA_ORIGIN}/v1beta1/screener/stocks/movers?top=10`;
+  const body = await getJson<{
+    gainers?: Array<{ symbol: string; price?: number }>;
+    losers?: Array<{ symbol: string; price?: number }>;
+  }>(url, "data");
+  return [...(body.gainers ?? []), ...(body.losers ?? [])];
+}
+
+export async function getStockSnapshots(symbols: string[]): Promise<Record<string, number>> {
+  const unique = [...new Set(symbols.filter(Boolean))];
+  if (!unique.length) return {};
+  const feed = process.env.ALPACA_DATA_FEED || "iex";
+  const url = `${DATA_ORIGIN}/v2/stocks/snapshots?symbols=${encodeURIComponent(unique.join(","))}&feed=${encodeURIComponent(feed)}`;
+  const body = await getJson<
+    Record<string, { latestTrade?: { p?: number }; latestQuote?: { ap?: number; bp?: number }; dailyBar?: { c?: number } }> & {
+      snapshots?: Record<string, { latestTrade?: { p?: number }; latestQuote?: { ap?: number; bp?: number }; dailyBar?: { c?: number } }>;
+    }
+  >(url, "data");
+  const table = body.snapshots ?? body;
+  const out: Record<string, number> = {};
+  for (const [sym, snap] of Object.entries(table ?? {})) {
+    if (!snap || typeof snap !== "object" || Array.isArray(snap)) continue;
+    if (!("latestTrade" in snap || "latestQuote" in snap || "dailyBar" in snap)) continue;
+    const mid =
+      snap.latestQuote?.bp && snap.latestQuote?.ap ? (snap.latestQuote.bp + snap.latestQuote.ap) / 2 : null;
+    const px = snap.latestTrade?.p ?? mid ?? snap.dailyBar?.c;
+    if (px && px > 0) out[sym] = px;
+  }
+  return out;
+}
+
+export async function getOptionSnapshots(symbols: string[]): Promise<Record<string, OptionSnapshot>> {
+  const unique = [...new Set(symbols.filter(Boolean))].slice(0, 100);
+  if (!unique.length) return {};
+  const feed = process.env.ALPACA_OPTIONS_FEED || "indicative";
+  const url = `${DATA_ORIGIN}/v1beta1/options/snapshots?symbols=${encodeURIComponent(unique.join(","))}&feed=${encodeURIComponent(feed)}`;
+  const body = await getJson<{ snapshots?: Record<string, OptionSnapshot> }>(url, "data");
+  return body.snapshots ?? {};
+}
+
+export async function getOpenOrders(): Promise<PaperOrder[]> {
+  const url = `${PAPER_TRADING_ORIGIN}/v2/orders?status=open&nested=true&limit=50`;
+  return getJson<PaperOrder[]>(url, "paper");
+}

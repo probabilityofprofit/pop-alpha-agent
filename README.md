@@ -35,6 +35,17 @@ npm run dev
 
 `npm run scan -- --paper-env` additionally asserts paper-only env (`ALPACA_PAPER_TRADE=true`, no live keys).
 
+The unattended loop:
+
+```bash
+npm run loop -- --once --scan-now
+npm run loop
+```
+
+Every 60 seconds it marks open packages (50% take / 50% stop). Every 15 minutes in the cash session it builds a tape, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps, and prints an MCP payload. It never calls `place_option_order`. Paste the JSON into Cursor. Session cap is 3 new opens. Last 15 minutes of RTH: no new risk; cancel working DAY opens.
+
+Set `OPENAI_API_KEY` in `.env.local` to enable the thesis. Missing or bad JSON is `modelSkip`; the governor still scans.
+
 The Alpha Desk is at `http://127.0.0.1:3001` (port 3001 so it does not collide with any other local app). Score a demo chain, or score SPY from paper. The desk **reads** paper account/chain over GET. It **never** places orders.
 
 ## Cockpit (this week, this repo)

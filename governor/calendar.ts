@@ -81,3 +81,11 @@ export function lastFifteenMinutesPdt(asOf: Date): boolean {
   const mins = hour * 60 + minute;
   return mins >= 12 * 60 + 45;
 }
+
+/** Official book: no new risk after Thu 3 Sep last 15 minutes PDT, and none on Fri 4 Sep. Test Friday 28 is allowed. */
+export function allowNewRisk(asOf: Date): boolean {
+  const ny = ymd(asOf);
+  if (ny >= "2026-09-04") return false;
+  if (ny === "2026-09-03" && lastFifteenMinutesPdt(asOf)) return false;
+  return true;
+}

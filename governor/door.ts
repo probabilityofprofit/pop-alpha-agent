@@ -36,3 +36,20 @@ export function openMleg(pkg: Package, qty: number, limit: number, clientOrderId
     })),
   };
 }
+
+export function closeMleg(pkg: Package, qty: number, limit: number, clientOrderId: string): PlaceOptionOrder {
+  return {
+    qty: String(qty),
+    type: "limit",
+    time_in_force: "day",
+    order_class: "mleg",
+    limit_price: limit.toFixed(2),
+    client_order_id: clientOrderId,
+    legs: pkg.legs.map((leg) => ({
+      symbol: leg.occ,
+      ratio_qty: "1",
+      side: leg.side === "sell" ? "buy" : "sell",
+      position_intent: leg.side === "sell" ? "buy_to_close" : "sell_to_close",
+    })),
+  };
+}

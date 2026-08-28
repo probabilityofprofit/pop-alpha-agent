@@ -74,3 +74,13 @@ export function joinLimit(pkg: Package): number {
   const raw = pkg.credit ? netBid : netAsk;
   return Math.round(raw * 100) / 100;
 }
+
+/** Debit (positive) or credit (negative) to flatten by joining the close side of NBBO. */
+export function closeJoinLimit(pkg: Package): number {
+  let pay = 0;
+  for (const leg of pkg.legs) {
+    if (leg.side === "sell") pay += leg.ask;
+    else pay -= leg.bid;
+  }
+  return Math.round(pay * 100) / 100;
+}

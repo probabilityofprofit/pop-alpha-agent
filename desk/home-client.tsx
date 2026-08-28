@@ -61,6 +61,16 @@ export function HomeClient() {
         </button>
         {error ? <p className="notice">{error}</p> : null}
       </div>
+      {desk?.lastLoop ? (
+        <p className="mono" style={{ margin: 0, color: "var(--dim)", fontSize: 12 }}>
+          Loop {when(desk.lastLoop.at)} · session opens {desk.lastLoop.opensThisSession}/3 ·{" "}
+          {desk.lastLoop.pending ? `MCP ${desk.lastLoop.pending.kind} ready` : desk.lastLoop.note}
+        </p>
+      ) : (
+        <p className="mono" style={{ margin: 0, color: "var(--faint)", fontSize: 12 }}>
+          Loop idle. Run npm run loop in pop-alpha-agent.
+        </p>
+      )}
 
       <div className="grid">
         <article className="panel">

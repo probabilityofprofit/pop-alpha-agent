@@ -1,4 +1,5 @@
 import { loadLastScan } from "@/lib/last-scan";
+import { loadLoopStatus } from "@/lib/loop-status";
 import { getAccount, getClock, getOrders, getPositions, haltPresent, paperKeysReady } from "@/lib/paper-broker";
 import { readLedger, readTestBook } from "@/lib/read-ledger";
 import type { DeskPayload } from "@/lib/desk-types";
@@ -16,6 +17,7 @@ export async function GET() {
     orders: [],
     ledger: readLedger(),
     lastScan: loadLastScan(),
+    lastLoop: loadLoopStatus(),
     testBook: readTestBook(),
   };
 

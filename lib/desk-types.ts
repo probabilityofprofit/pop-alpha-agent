@@ -18,6 +18,17 @@ export type LastScan = {
 
 export type LedgerRow = Record<string, unknown> & { ts?: string; kind?: string };
 
+export type LastLoop = {
+  at: string;
+  sessionYmd: string;
+  isOpen: boolean;
+  halt: boolean;
+  lastFifteen: boolean;
+  opensThisSession: number;
+  pending: { kind: string; reason: string } | null;
+  note: string;
+};
+
 export type DeskPayload = {
   paperReady: boolean;
   halt: boolean;
@@ -27,6 +38,7 @@ export type DeskPayload = {
   orders: PaperOrder[];
   ledger: LedgerRow[];
   lastScan: LastScan | null;
+  lastLoop: LastLoop | null;
   testBook: string;
   error?: string;
 };

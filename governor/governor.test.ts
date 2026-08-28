@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { addDaysYmd, inTenorWindow, manageByDays, pickTenors } from "./calendar";
+import { addDaysYmd, allowNewRisk, inTenorWindow, manageByDays, pickTenors } from "./calendar";
 import { keepName, rankTape } from "./tape";
 import { sizeQty, spreadOk } from "./paper";
 import { buildTemplate } from "./strikes";
@@ -19,6 +19,10 @@ describe("calendar", () => {
   });
   it("adds calendar days on the UTC date", () => {
     assert.equal(addDaysYmd("2026-08-28", 7), "2026-09-04");
+  });
+  it("blocks new official risk on 4 Sep", () => {
+    assert.equal(allowNewRisk(new Date("2026-08-28T16:00:00Z")), true);
+    assert.equal(allowNewRisk(new Date("2026-09-04T14:00:00Z")), false);
   });
   it("picks 7/14/21-ish tenors", () => {
     const rows = [8, 10, 12, 14, 16, 20].map((dte) => ({ dte }));

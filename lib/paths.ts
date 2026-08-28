@@ -10,3 +10,4 @@ export const LEDGER_PATH = path.join(repoRoot(), "hackathon", "ledger.jsonl");
 export const HALT_PATH = path.join(repoRoot(), "hackathon", "HALT");
 export const LAST_SCAN_PATH = path.join(repoRoot(), "hackathon", "last-scan.json");
 export const TEST_BOOK_PATH = path.join(repoRoot(), "hackathon", "TEST_BOOK.md");
+export const LOOP_STATUS_PATH = path.join(repoRoot(), "hackathon", "loop-status.json");
