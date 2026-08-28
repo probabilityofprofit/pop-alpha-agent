@@ -4,10 +4,6 @@ Alpaca × lablab **Options Alpha Agents** (28 Aug–4 Sep 2026).
 
 This repository contains **only code authored during the hackathon window**. It is a governed paper options agent: Alpaca MCP places defined-risk multi-leg orders; a deterministic governor may veto the model.
 
-## Prior work (disclosed, not included)
-
-The author maintains a separate public options workstation, [POP Option Trading Terminal](https://github.com/probabilityofprofit/pop-option-trading-terminal). That product predates this event. **None of its source files are in this repo.** Concepts (probability of profit, defined-risk verticals, a heatmap-style hold map) are re-implemented here this week. Judges should review this repository, not the terminal.
-
 ## What this agent does
 
 1. Build a liquid options tape from Alpaca MCP (`get_most_active_stocks`, `get_market_movers`, chains).
