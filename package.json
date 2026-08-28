@@ -1,0 +1,19 @@
+{
+  "name": "pop-alpha-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Governed paper options agent for the Alpaca Options Alpha Agents hackathon.",
+  "scripts": {
+    "scan": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

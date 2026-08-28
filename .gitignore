@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+hackathon/ledger.jsonl
+hackathon/HALT
+hackathon/CONTEST.json
+data/
+.DS_Store
