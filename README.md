@@ -25,12 +25,18 @@ Friday 28 Aug is a test session only. Policy: [`GOVERNOR.md`](./GOVERNOR.md).
 ## Run (paper)
 
 ```bash
-cp .env.example .env.local
-# paper keys only; ALPACA_PAPER_TRADE=true
-npx tsx src/index.ts
+npm install
+npm test
+npm run scan
 ```
 
-Requires Alpaca MCP against the paper account (`place_option_order`, `get_clock`, `get_account_info`, chains). Do not construct a live Trading API client.
+`npm run scan` runs the governor on a built-in demo chain and prints an MCP `place_option_order` payload. It does **not** send the order. Cursor (or any MCP host) is the door: pass that payload to `place_option_order`.
+
+`npm run scan -- --paper-env` additionally asserts paper-only env (`ALPACA_PAPER_TRADE=true`, no live keys).
+
+## Cockpit (this week, this repo)
+
+A new blotter/log UI will be added here so judges can watch proposals, vetoes, and fills. It will be written in this repository during the window. It will not be a copy of the pre-existing POP workstation. Until that lands, `hackathon/ledger.jsonl` is the record.
 
 ## License
 

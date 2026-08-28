@@ -6,6 +6,7 @@
   "description": "Governed paper options agent for the Alpaca Options Alpha Agents hackathon.",
   "scripts": {
     "scan": "tsx src/index.ts",
+    "test": "tsx --test src/governor.test.ts src/map.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "engines": {
