@@ -45,7 +45,7 @@ export function scanExpiry(input: ScanInput): Decision {
   if (input.ledgerPath) {
     appendLedger(input.ledgerPath, {
       ts: input.asOf.toISOString(),
-      kind: "cycle",
+      kind: "score",
       cycleId: input.cycleId,
       underlying: input.underlying,
       expiration: input.expiration,

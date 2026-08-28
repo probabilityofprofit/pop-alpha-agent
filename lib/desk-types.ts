@@ -25,7 +25,7 @@ export type LastLoop = {
   halt: boolean;
   lastFifteen: boolean;
   opensThisSession: number;
-  pending: { kind: string; reason: string } | null;
+  pending: { kind: string; reason: string; sent?: boolean } | null;
   note: string;
 };
 

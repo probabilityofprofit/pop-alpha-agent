@@ -53,3 +53,19 @@ export function closeMleg(pkg: Package, qty: number, limit: number, clientOrderI
     })),
   };
 }
+
+/** Guard the unattended door. The model never calls this. */
+export function assertSendablePlace(order: PlaceOptionOrder): void {
+  if (order.order_class !== "mleg") throw new Error("Door only sends mleg.");
+  if (order.type !== "limit") throw new Error("Door only sends limit orders.");
+  if (order.time_in_force !== "day") throw new Error("Door only sends DAY.");
+  if (!order.client_order_id.startsWith("pop-alpha-")) throw new Error("client_order_id must be pop-alpha-*.");
+  const qty = Number(order.qty);
+  if (!Number.isInteger(qty) || qty < 1) throw new Error("qty must be an integer >= 1.");
+  if (order.legs.length < 2 || order.legs.length > 4) throw new Error("mleg must have 2–4 legs.");
+  for (const leg of order.legs) {
+    if (!leg.symbol || !leg.ratio_qty || !leg.side || !leg.position_intent) {
+      throw new Error("Each leg needs symbol, ratio_qty, side, position_intent.");
+    }
+  }
+}

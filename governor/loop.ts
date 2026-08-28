@@ -1,6 +1,6 @@
 /**
  * Unattended paper loop. Authored 28 Aug 2026.
- * Prints MCP payloads. Does not call place_option_order.
+ * LOOP_SEND=true sends MCP-shaped paper orders. Default prints only.
  */
 
 import { loadEnvLocal } from "../lib/load-env";
@@ -18,7 +18,7 @@ async function main(): Promise<void> {
   const once = process.argv.includes("--once");
   const forceScan = process.argv.includes("--scan-now");
   let lastScanAt: number | undefined;
-  console.log(JSON.stringify({ note: "POP Alpha loop. Paper reads only. MCP is the door." }));
+  console.log(JSON.stringify({ note: "POP Alpha loop. Paper only. LOOP_SEND=true to send the door." }));
   do {
     const row = await tick({ forceScan: forceScan && !lastScanAt, lastScanAt });
     if (row.scan) lastScanAt = Date.now();
@@ -37,7 +37,7 @@ async function main(): Promise<void> {
         note: row.note,
       }),
     );
-    if (row.pending?.mcp) {
+    if (row.pending?.mcp && !row.pending.sent) {
       console.log(JSON.stringify({ mcp: row.pending.mcp }, null, 2));
     }
     if (once) break;

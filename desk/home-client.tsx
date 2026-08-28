@@ -64,7 +64,9 @@ export function HomeClient() {
       {desk?.lastLoop ? (
         <p className="mono" style={{ margin: 0, color: "var(--dim)", fontSize: 12 }}>
           Loop {when(desk.lastLoop.at)} · session opens {desk.lastLoop.opensThisSession}/3 ·{" "}
-          {desk.lastLoop.pending ? `MCP ${desk.lastLoop.pending.kind} ready` : desk.lastLoop.note}
+          {desk.lastLoop.pending
+            ? `MCP ${desk.lastLoop.pending.kind} ${desk.lastLoop.pending.sent ? "sent" : "ready"}`
+            : desk.lastLoop.note}
         </p>
       ) : (
         <p className="mono" style={{ margin: 0, color: "var(--faint)", fontSize: 12 }}>

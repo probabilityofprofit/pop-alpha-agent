@@ -38,7 +38,9 @@ npm run loop -- --once --scan-now
 npm run loop
 ```
 
-Every 60 seconds it marks open packages (50% take / 50% stop). Every 15 minutes in the cash session it builds a tape, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps, and prints an MCP payload. It never calls `place_option_order`. Paste the JSON into Cursor. Session cap is 3 new opens. Last 15 minutes of RTH: no new risk; cancel working DAY opens.
+Every 60 seconds it marks open packages (50% take / 50% stop) and appends a cycle row, including no-trade. Every 15 minutes in the cash session it builds a tape, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps, and builds an MCP-shaped payload. Session cap is 3 new opens. Last 15 minutes of RTH: no new risk; cancel every working DAY open. Unfilled DAY opens are cancelled at the next scan.
+
+Default: print the payload (`LOOP_SEND` unset/false). Set `LOOP_SEND=true` in `.env.local` to have this process send that same mleg body to `paper-api.alpaca.markets` (paper keys only, DAY limit, 2–4 legs). The model never calls the door. Cursor MCP `place_option_order` remains valid for a human paste.
 
 Set `OPENAI_API_KEY` in `.env.local` to enable the thesis. Missing or bad JSON is `modelSkip`; the governor still scans.
 

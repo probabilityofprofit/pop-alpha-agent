@@ -14,14 +14,14 @@ Halt file: `hackathon/HALT`. If it exists, or equity ≤ $95,000, no new risk. F
 | --- | --- | --- |
 | Optional thesis JSON | Model | Place orders, pick qty, limit, strikes, or tenor |
 | Tape, strikes, template, expiry, qty, limit, allow/veto | Governor | Skip the hold map |
-| Open / close / cancel | Alpaca MCP | Live keys, REST-only path, market mleg |
+| Open / close / cancel | MCP or `LOOP_SEND` paper door | Live keys, the model calling either, market mleg |
 | Dollar P&L | Alpaca official paper account | Test-book fills or invented marks |
 
 ## 1. Venue, door, clock, halt
 
 Paper only. `ALPACA_PAPER_TRADE=true`. Never construct a live Alpaca client or read live `ALPACA_API_KEY` / `ALPACA_SECRET_KEY`.
 
-Opens: MCP `place_option_order` mleg only. Closes: same, then `close_position` per leftover OCC after two rejected mleg closes (`legwiseClose`). The model never calls either.
+Opens: MCP `place_option_order` mleg, or the loop paper door posting that same payload when `LOOP_SEND=true`. Closes: same, then `close_position` per leftover OCC after two rejected mleg closes (`legwiseClose`). The model never calls either.
 
 New risk only when `get_clock.is_open`. No queue for the next open. No new opens in the last 15 minutes of the cash session (after 12:45 p.m. PDT). Cancel working DAY opens then. Exit polls still run.
 
@@ -117,7 +117,7 @@ No qty, limit, or OCC. Missing or bad JSON → `modelSkip`; the scan still runs.
 
 ## 9. Ledger and contest close
 
-Append `hackathon/ledger.jsonl`: `cycle`, `order`, `fill`, `cancel`, `exit`, `halt`. No secrets.
+Append `hackathon/ledger.jsonl`: `cycle` (one final or idle row per tick, including no-trade), `score` (per expiry), `order`, `fill`, `cancel`, `exit`, `halt`. No secrets. `order` is written when the door sends. Fills are reconciled from paper orders with `pop-alpha-*` client ids.
 
 Friday 4 Sep 9:30 a.m. ET: `CONTEST.md` / `CONTEST.json` from MCP account, history, activities, orders, positions on the **official** account. Dollar P&L = equity at that stamp − $100,000. Then flatten. Screenshot must match that equity.
 
@@ -125,4 +125,4 @@ Friday 4 Sep 9:30 a.m. ET: `CONTEST.md` / `CONTEST.json` from MCP account, histo
 
 Allow: bull/bear call and put verticals, iron condor, iron butterfly, explicit no-trade, scan with modelSkip.
 
-Deny: naked shorts, unlimited-loss straddles/strangles/ratios, stock, crypto, single-leg, calendars, diagonals, off-tape names, second package in a name, live trading, REST-only execution, market mleg, model qty/limit/OCC, invented P&L, holding a working DAY into the next scan or into the last 15 minutes of RTH.
+Deny: naked shorts, unlimited-loss straddles/strangles/ratios, stock, crypto, single-leg, calendars, diagonals, off-tape names, second package in a name, live trading, market mleg, model qty/limit/OCC, invented P&L, holding a working DAY into the next scan or into the last 15 minutes of RTH, a send path that is not the MCP-shaped paper door.
