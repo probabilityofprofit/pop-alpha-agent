@@ -3,9 +3,9 @@
  * Authored 28 Aug 2026. Does not import the pre-existing terminal.
  */
 
-import { spreadOk } from "./paper.ts";
-import { packageMetrics } from "./payoff.ts";
-import type { Leg, OccQuote, Package, Right, Template } from "./types.ts";
+import { spreadOk } from "./paper";
+import { packageMetrics } from "./payoff";
+import type { Leg, OccQuote, Package, Right, Template } from "./types";
 
 export function liquid(q: OccQuote): boolean {
   return spreadOk(q.bid, q.ask) && q.oi >= 200;

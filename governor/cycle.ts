@@ -1,11 +1,11 @@
 /** One scan: build templates, score, pick. Authored 28 Aug 2026. */
 
-import { lastFifteenMinutesPdt } from "./calendar.ts";
-import { openMleg } from "./door.ts";
-import { appendLedger } from "./ledger.ts";
-import { rank, scorePackage, toDecision } from "./pick.ts";
-import { ALL_TEMPLATES, buildTemplate } from "./strikes.ts";
-import type { Decision, OccQuote, Template } from "./types.ts";
+import { lastFifteenMinutesPdt } from "./calendar";
+import { openMleg } from "./door";
+import { appendLedger } from "./ledger";
+import { rank, scorePackage, toDecision } from "./pick";
+import { ALL_TEMPLATES, buildTemplate } from "./strikes";
+import type { Decision, OccQuote, Template } from "./types";
 
 export type ScanInput = {
   underlying: string;

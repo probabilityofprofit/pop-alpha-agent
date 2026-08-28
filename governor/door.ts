@@ -1,6 +1,6 @@
 /** MCP place_option_order payload. Authored 28 Aug 2026. The model never calls this. */
 
-import type { Package } from "./types.ts";
+import type { Package } from "./types";
 
 export type McpLeg = {
   symbol: string;

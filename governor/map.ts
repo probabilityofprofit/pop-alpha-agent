@@ -1,7 +1,7 @@
 /** Hold map: GBM + BS marks. Authored 28 Aug 2026. */
 
-import { bsPrice } from "./bs.ts";
-import type { HoldMap, Package } from "./types.ts";
+import { bsPrice } from "./bs";
+import type { HoldMap, Package } from "./types";
 
 const RATE = 0.05;
 const TRIALS = 1500;

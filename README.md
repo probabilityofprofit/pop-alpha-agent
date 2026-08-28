@@ -28,15 +28,18 @@ Friday 28 Aug is a test session only. Policy: [`GOVERNOR.md`](./GOVERNOR.md).
 npm install
 npm test
 npm run scan
+npm run dev
 ```
 
 `npm run scan` runs the governor on a built-in demo chain and prints an MCP `place_option_order` payload. It does **not** send the order. Cursor (or any MCP host) is the door: pass that payload to `place_option_order`.
 
 `npm run scan -- --paper-env` additionally asserts paper-only env (`ALPACA_PAPER_TRADE=true`, no live keys).
 
+The Alpha Desk is at `http://127.0.0.1:3001` (port 3001 so it does not collide with any other local app). Score a demo chain, or score SPY from paper. The desk **reads** paper account/chain over GET. It **never** places orders.
+
 ## Cockpit (this week, this repo)
 
-A new blotter/log UI will be added here so judges can watch proposals, vetoes, and fills. It will be written in this repository during the window. It will not be a copy of the pre-existing POP workstation. Until that lands, `hackathon/ledger.jsonl` is the record.
+`app/` + `desk/` is a new cockpit authored during the window: proposal, veto, hold map, ledger, MCP door JSON, paper blotter. It is not a copy of the pre-existing POP workstation. Layout, CSS, and HTTP client are original to this repository. Shared *ideas* (defined-risk verticals, POP-style hold map) are re-implemented in `governor/`.
 
 ## License
 

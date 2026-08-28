@@ -4,9 +4,9 @@
  * Orders still only exist as an MCP payload — this process does not call Alpaca.
  */
 
-import { mcpPayload, scanExpiry } from "./cycle.ts";
-import { DEMO_QUOTES, DEMO_SPOT } from "./demo-chain.ts";
-import { assertPaperOnly } from "./paper.ts";
+import { mcpPayload, scanExpiry } from "./cycle";
+import { DEMO_QUOTES, DEMO_SPOT } from "./demo-chain";
+import { assertPaperOnly } from "./paper";
 
 function main(): void {
   const live = process.argv.includes("--paper-env");

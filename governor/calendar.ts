@@ -19,6 +19,17 @@ export function calendarDaysBetween(fromYmd: string, toYmd: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 
+export function addDaysYmd(s: string, days: number): string {
+  const d = parseYmd(s);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+export function tenorBounds(asOf: Date): { gte: string; lte: string } {
+  const today = ymd(asOf);
+  return { gte: addDaysYmd(today, MIN_DTE), lte: addDaysYmd(today, MAX_DTE) };
+}
+
 export function dteFrom(expiration: string, asOf: Date): number {
   return calendarDaysBetween(ymd(asOf), expiration);
 }

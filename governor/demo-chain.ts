@@ -1,6 +1,6 @@
 /** Demo chain so `npm run scan` works without secrets. Authored 28 Aug 2026. */
 
-import type { OccQuote } from "./types.ts";
+import type { OccQuote } from "./types";
 
 function row(right: "call" | "put", strike: number, bid: number, delta: number, iv = 0.2): OccQuote {
   return {

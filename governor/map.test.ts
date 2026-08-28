@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { cell, simulateHoldMap } from "./map.ts";
-import { buildTemplate } from "./strikes.ts";
-import { DEMO_QUOTES, DEMO_SPOT } from "./demo-chain.ts";
+import { cell, simulateHoldMap } from "./map";
+import { buildTemplate } from "./strikes";
+import { DEMO_QUOTES, DEMO_SPOT } from "./demo-chain";
 
 function lcg(seed: number): () => number {
   let s = seed >>> 0;

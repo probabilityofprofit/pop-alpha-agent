@@ -1,9 +1,12 @@
 node_modules/
 dist/
+.next/
+*.tsbuildinfo
 .env
 .env.local
 *.log
 hackathon/ledger.jsonl
+hackathon/last-scan.json
 hackathon/HALT
 hackathon/CONTEST.json
 data/

@@ -1,10 +1,10 @@
 /** Pass/fail and rank. Authored 28 Aug 2026. */
 
-import { manageByDays } from "./calendar.ts";
-import { cell, simulateHoldMap } from "./map.ts";
-import { sizeQty } from "./paper.ts";
-import { joinLimit } from "./payoff.ts";
-import type { Decision, Package } from "./types.ts";
+import { manageByDays } from "./calendar";
+import { cell, simulateHoldMap } from "./map";
+import { sizeQty } from "./paper";
+import { joinLimit } from "./payoff";
+import type { Decision, Package } from "./types";
 
 export type Scored = {
   pkg: Package;

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { inTenorWindow, manageByDays, pickTenors } from "./calendar.ts";
-import { keepName, rankTape } from "./tape.ts";
-import { sizeQty, spreadOk } from "./paper.ts";
-import { buildTemplate } from "./strikes.ts";
-import type { OccQuote } from "./types.ts";
+import { addDaysYmd, inTenorWindow, manageByDays, pickTenors } from "./calendar";
+import { keepName, rankTape } from "./tape";
+import { sizeQty, spreadOk } from "./paper";
+import { buildTemplate } from "./strikes";
+import type { OccQuote } from "./types";
 
 describe("calendar", () => {
   it("keeps 7-21 DTE", () => {
@@ -16,6 +16,9 @@ describe("calendar", () => {
   it("caps manage-by at the 4 Sep window", () => {
     const asOf = new Date("2026-08-31T13:30:00Z");
     assert.equal(manageByDays(21, asOf), 4);
+  });
+  it("adds calendar days on the UTC date", () => {
+    assert.equal(addDaysYmd("2026-08-28", 7), "2026-09-04");
   });
   it("picks 7/14/21-ish tenors", () => {
     const rows = [8, 10, 12, 14, 16, 20].map((dte) => ({ dte }));

@@ -1,6 +1,6 @@
 /** Defined-risk package metrics. Authored 28 Aug 2026. */
 
-import type { Leg, Package, Template } from "./types.ts";
+import type { Leg, Package, Template } from "./types";
 
 function mid(leg: Leg): number {
   return (leg.bid + leg.ask) / 2;
