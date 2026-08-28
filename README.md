@@ -14,9 +14,15 @@ This repository contains **only code authored during the hackathon window**. It 
 
 ## Official P&L window
 
-**Mon 31 Aug 2026 9:30 a.m. ET → Fri 4 Sep 2026 9:30 a.m. ET** on a **new** paper account (not Friday’s test book).
+**New** $100,000 paper account (not Friday’s test book). First official order **Mon 31 Aug 2026 9:30 a.m. ET**.
 
-Friday 28 Aug is a test session only. Policy: [`GOVERNOR.md`](./GOVERNOR.md).
+Alpaca measures **total account equity**, not cash. Window: Mon 31 9:30 a.m. ET → Fri 4 9:30 a.m. ET. They look at Thursday 3 Sep EOD equity (Sep 3 exercise/assignment included) and snapshot equity Friday 4 Sep 9:30 a.m. ET. Do not flatten before that Friday snapshot.
+
+Judging is that equity **and** the agent workflow (creativity, autonomy, robustness). Not Sharpe. Not P&L alone.
+
+Friday 28 Aug is a test session only. Policy: [`GOVERNOR.md`](./GOVERNOR.md). Market data: Alpaca Indicative options feed is allowed (this repo’s default). OPRA / Algo Trader Plus is not required.
+
+GitHub may stay private until submit. This repo’s trading code was authored in-window.
 
 ## Run (paper)
 
@@ -38,9 +44,9 @@ npm run loop -- --once --scan-now
 npm run loop
 ```
 
-Every 60 seconds it marks open packages (50% take / 50% stop) and appends a cycle row, including no-trade. Every 15 minutes in the cash session it builds a tape, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps, and builds an MCP-shaped payload. Session cap is 3 new opens. Last 15 minutes of RTH: no new risk; cancel every working DAY open. Unfilled DAY opens are cancelled at the next scan.
+Every 60 seconds it marks open packages (50% take / 50% stop) and appends a cycle row, including no-trade. Every 15 minutes in the cash session it builds a tape, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps, and builds an MCP-shaped payload. Session cap is 5 new opens. Book cap is 10% of equity; halt at $90k. Last 15 minutes of RTH: no new risk; cancel every working DAY open. Unfilled DAY opens are cancelled at the next scan.
 
-Default: print the payload (`LOOP_SEND` unset/false). Set `LOOP_SEND=true` in `.env.local` to have this process send that same mleg body to `paper-api.alpaca.markets` (paper keys only, DAY limit, 2–4 legs). The model never calls the door. Cursor MCP `place_option_order` remains valid for a human paste.
+Default: print the payload (`LOOP_SEND` unset/false). Set `LOOP_SEND=true` in `.env.local` to have this process send that same mleg body to `paper-api.alpaca.markets` (paper keys only, DAY limit, 2–4 legs). That is the MCP `place_option_order` JSON over paper HTTP so the unattended loop can run without a human paste. The model never calls the door. Cursor MCP `place_option_order` remains valid for a human paste.
 
 Set `OPENAI_API_KEY` in `.env.local` to enable the thesis. Missing or bad JSON is `modelSkip`; the governor still scans.
 
@@ -48,7 +54,7 @@ The Alpha Desk is at `http://127.0.0.1:3001` (port 3001 so it does not collide w
 
 ## Cockpit (this week, this repo)
 
-`app/` + `desk/` is a new cockpit authored during the window: proposal, veto, hold map, ledger, MCP door JSON, paper blotter. It is not a copy of the pre-existing POP workstation. Layout, CSS, and HTTP client are original to this repository. Shared *ideas* (defined-risk verticals, POP-style hold map) are re-implemented in `governor/`.
+`app/` + `desk/` is the cockpit: proposal, veto, hold map, ledger, MCP door JSON, paper blotter.
 
 ## License
 

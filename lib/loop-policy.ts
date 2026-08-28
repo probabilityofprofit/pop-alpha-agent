@@ -1,7 +1,23 @@
 /** Pure loop decisions. Authored 28 Aug 2026. No broker I/O. */
 
+/** Official week: 5 new opens / session so 1% tickets can fill a 10% book. */
+export const SESSION_OPEN_CAP = 5;
+/** Defined-risk |maxLoss|×qty of open packages, as a fraction of equity. */
+export const BOOK_CAP = 0.1;
+/** Halt new risk at this equity. Same hole as the 10% book on a $100k start. */
+export const EQUITY_FLOOR = 90_000;
+/** Fat-finger ceiling when LOOP_MAX_QTY is unset. Does not replace 1% sizing. */
+export const DEFAULT_MAX_QTY = 12;
+
 export function loopSendEnabled(sendFlag: string | undefined = process.env.LOOP_SEND): boolean {
   return sendFlag === "true";
+}
+
+export function capQty(qty: number, maxRaw: string | undefined = process.env.LOOP_MAX_QTY): number {
+  const source = maxRaw == null || maxRaw.trim() === "" ? String(DEFAULT_MAX_QTY) : maxRaw;
+  const max = Number(source);
+  if (!Number.isInteger(max) || max < 1) return qty;
+  return Math.min(qty, max);
 }
 
 const TERMINAL = new Set(["filled", "canceled", "cancelled", "expired", "rejected", "done_for_day"]);
@@ -29,7 +45,7 @@ export function skippedScanReason(input: {
     return "Scan not due.";
   }
   if (input.halt) return "Halt file or equity floor.";
-  if (input.sessionCapped) return "Session cap: three new opens.";
+  if (input.sessionCapped) return `Session cap: ${SESSION_OPEN_CAP} new opens.`;
   return null;
 }
 

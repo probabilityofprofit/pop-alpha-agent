@@ -1,6 +1,6 @@
 /**
  * Listed-strike builders for the six allowed templates.
- * Authored 28 Aug 2026. Does not import the pre-existing terminal.
+ * Authored 28 Aug 2026.
  */
 
 import { spreadOk } from "./paper";

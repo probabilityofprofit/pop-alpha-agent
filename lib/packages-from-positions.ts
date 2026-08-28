@@ -12,6 +12,31 @@ export type OpenBook = {
   entryNet: number;
 };
 
+export function templateFromWorkingLegs(
+  legs: Array<{ symbol: string; side: string }> | null | undefined,
+): Template | null {
+  if (!legs?.length) return null;
+  const mapped: Leg[] = [];
+  for (const leg of legs) {
+    const parsed = parseOcc(leg.symbol);
+    if (!parsed) return null;
+    const side = leg.side.toLowerCase().includes("sell") ? "sell" : "buy";
+    mapped.push({
+      occ: leg.symbol,
+      right: parsed.right,
+      strike: parsed.strike,
+      bid: 1,
+      ask: 1,
+      oi: 0,
+      iv: null,
+      delta: null,
+      volume: 0,
+      side,
+    });
+  }
+  return inferTemplate(mapped);
+}
+
 export function inferTemplate(legs: Leg[]): Template | null {
   const puts = legs.filter((l) => l.right === "put");
   const calls = legs.filter((l) => l.right === "call");

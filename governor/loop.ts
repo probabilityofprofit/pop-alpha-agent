@@ -29,6 +29,7 @@ async function main(): Promise<void> {
         halt: row.halt,
         lastFifteen: row.lastFifteen,
         opensThisSession: row.opensThisSession,
+        skip: row.skip,
         thesis: row.thesis.skip ? row.thesis.reason : row.thesis.hint,
         exits: row.exits,
         decision: row.scan?.decision.action ?? null,

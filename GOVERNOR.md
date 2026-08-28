@@ -4,9 +4,11 @@ Authored 28 Aug 2026 during the Alpaca Options Alpha Agents window. Paper-only. 
 
 **Test book (Fri 28 Aug):** existing paper account ending `X17N`. MCP mleg tests only. Does not score.
 
-**Official book:** new Alpaca paper account, $100,000, options on. First order no earlier than **Mon 31 Aug 2026 9:30 a.m. ET**. Last four: `____`. Official P&L: **that open through Fri 4 Sep 2026 9:30 a.m. ET** (`equity` at the end minus $100,000).
+**Official book:** new Alpaca paper account, $100,000, options on. First order no earlier than **Mon 31 Aug 2026 9:30 a.m. ET**. Last four: `____`. Do not use the Friday test book (`X17N`) for this number.
 
-Halt file: `hackathon/HALT`. If it exists, or equity ≤ $95,000, no new risk. Flattening is allowed.
+Alpaca judges **total account equity**, not cash. Official window: **Mon 31 Aug 2026 9:30 a.m. ET → Fri 4 Sep 2026 9:30 a.m. ET**. They look at **Thursday 3 Sep EOD equity** (Sep 3 expiries’ exercise/assignment included) and take a **Friday 4 Sep 9:30 a.m. ET** equity snapshot. Dollar P&L = that equity − $100,000. Photograph Friday 9:30, **then** flatten — do not flatten before the snapshot. P&L is one judging factor; workflow (autonomy, robustness) also counts.
+
+Halt file: `hackathon/HALT`. If it exists, or equity ≤ $90,000, no new risk. Flattening is allowed. The $90k floor is the same hole as the 10% book cap.
 
 ## Who owns what
 
@@ -80,13 +82,13 @@ Rank by manage-by 50% cell, then expiry 50% cell, then fewer DTE, then vertical 
 
 Qty = floor(1% of equity / |maxLoss|). Strip model qty. Skip if qty < 1.
 
-Open defined-risk |maxLoss|×qty ≤ 5% of equity. One package per name. At most two bull verticals, two bear verticals, two irons. A working open counts as that name’s package.
+Open defined-risk |maxLoss|×qty ≤ 10% of equity. One package per name. At most two bull verticals, two bear verticals, two irons (loop enforces this before send). A working open counts as that name’s package. Unattended qty is also capped at 12 lots (`LOOP_MAX_QTY`, default 12) so a units bug cannot send a 45-lot.
 
 DAY only. Join net NBBO: debit at net ask, credit at net bid. Do not cross. Closes: buying back a credit uses net ask; selling a debit uses net bid.
 
 ## 6. Cycle
 
-Scan every 15 minutes in the cash session. 4-minute wall; if time expires, pick among maps already finished. One new open per scan, three per session, one working DAY open. Cancel unfilled at scan end and at the last-15-minutes cutoff.
+Scan every 15 minutes in the cash session. 4-minute wall; if time expires, pick among maps already finished. One new open per scan, five per session, one working DAY open. Cancel unfilled at scan end and at the last-15-minutes cutoff.
 
 Exit poll every 60 seconds while anything is open: marks only, no Monte Carlo.
 
@@ -94,7 +96,7 @@ Exit poll every 60 seconds while anything is open: marks only, no Monte Carlo.
 
 Take profit at 50% of max profit. Stop at 50% of |maxLoss| (credits) or 50% of debit paid (debits). Mark = package net mid vs filled entry.
 
-No new official risk after Thursday 3 Sep last 15 minutes, and none on Friday 4 Sep. Thursday overnight into Friday 9:30 a.m. ET is inside the window. At 9:30 a.m. ET Friday: snapshot equity, then flatten.
+No new official risk after Thursday 3 Sep last 15 minutes, and none on Friday 4 Sep. Thursday EOD marks plus Sep 3 assignment are what Alpaca described as the scored book. Leave packages on through the **Friday 4 Sep 9:30 a.m. ET** snapshot, then flatten. Do not flatten Thursday night or Friday before 9:30 a.m. ET.
 
 Close path: mleg `place_option_order`, one retry, then `close_position`. Leftover after two attempts: halt file. Assignment: flatten the rest of the package.
 
@@ -119,7 +121,7 @@ No qty, limit, or OCC. Missing or bad JSON → `modelSkip`; the scan still runs.
 
 Append `hackathon/ledger.jsonl`: `cycle` (one final or idle row per tick, including no-trade), `score` (per expiry), `order`, `fill`, `cancel`, `exit`, `halt`. No secrets. `order` is written when the door sends. Fills are reconciled from paper orders with `pop-alpha-*` client ids.
 
-Friday 4 Sep 9:30 a.m. ET: `CONTEST.md` / `CONTEST.json` from MCP account, history, activities, orders, positions on the **official** account. Dollar P&L = equity at that stamp − $100,000. Then flatten. Screenshot must match that equity.
+Friday 4 Sep 9:30 a.m. ET: `CONTEST.md` / `CONTEST.json` from MCP account, history, activities, orders, positions on the **official** account. Dollar P&L = official **equity** − $100,000 (not cash). Screenshot must match that Friday 9:30 equity. Then flatten.
 
 ## Allow / deny
 

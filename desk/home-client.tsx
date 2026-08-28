@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { HoldMapGrid } from "@/desk/hold-map";
 import { money, num, pct, pnlClass, templateLabel, when } from "@/desk/fmt";
 import type { DeskPayload } from "@/lib/desk-types";
+import { SESSION_OPEN_CAP } from "@/lib/loop-policy";
 
 export function HomeClient() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
@@ -63,10 +64,12 @@ export function HomeClient() {
       </div>
       {desk?.lastLoop ? (
         <p className="mono" style={{ margin: 0, color: "var(--dim)", fontSize: 12 }}>
-          Loop {when(desk.lastLoop.at)} · session opens {desk.lastLoop.opensThisSession}/3 ·{" "}
+          Loop {when(desk.lastLoop.at)} · session opens {desk.lastLoop.opensThisSession}/{SESSION_OPEN_CAP} ·{" "}
           {desk.lastLoop.pending
             ? `MCP ${desk.lastLoop.pending.kind} ${desk.lastLoop.pending.sent ? "sent" : "ready"}`
-            : desk.lastLoop.note}
+            : desk.lastLoop.skip
+              ? desk.lastLoop.skip
+              : desk.lastLoop.note}
         </p>
       ) : (
         <p className="mono" style={{ margin: 0, color: "var(--faint)", fontSize: 12 }}>

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  BOOK_CAP,
+  DEFAULT_MAX_QTY,
+  EQUITY_FLOOR,
+  SESSION_OPEN_CAP,
+  capQty,
   cancelPayload,
   clearCloseAttempts,
   fillsToLog,
@@ -16,6 +21,27 @@ describe("loopSendEnabled", () => {
     assert.equal(loopSendEnabled(undefined), false);
     assert.equal(loopSendEnabled("1"), false);
     assert.equal(loopSendEnabled("true"), true);
+  });
+});
+
+describe("official week limits", () => {
+  it("pairs a 10% book with a $90k halt and five session opens", () => {
+    assert.equal(BOOK_CAP, 0.1);
+    assert.equal(EQUITY_FLOOR, 90_000);
+    assert.equal(SESSION_OPEN_CAP, 5);
+    assert.equal(DEFAULT_MAX_QTY, 12);
+  });
+});
+
+describe("capQty", () => {
+  it("defaults to 12 lots when LOOP_MAX_QTY is unset", () => {
+    assert.equal(capQty(45, undefined), 12);
+    assert.equal(capQty(45, ""), 12);
+    assert.equal(capQty(7, undefined), 7);
+  });
+  it("clamps to a positive integer cap", () => {
+    assert.equal(capQty(45, "1"), 1);
+    assert.equal(capQty(1, "5"), 1);
   });
 });
 
@@ -59,7 +85,7 @@ describe("skippedScanReason", () => {
   it("logs session cap when a scan is due", () => {
     assert.equal(
       skippedScanReason({ ...base, scanDue: true, sessionCapped: true }),
-      "Session cap: three new opens.",
+      `Session cap: ${SESSION_OPEN_CAP} new opens.`,
     );
   });
   it("yields to an exit or cancel already pending", () => {

@@ -3,6 +3,7 @@
 import { lastFifteenMinutesPdt } from "./calendar";
 import { openMleg } from "./door";
 import { appendLedger } from "./ledger";
+import { MIX_CAP_REASON } from "./mix";
 import { rank, scorePackage, toDecision } from "./pick";
 import { ALL_TEMPLATES, buildTemplate } from "./strikes";
 import type { Decision, OccQuote, Template } from "./types";
@@ -20,6 +21,8 @@ export type ScanInput = {
   cycleId: string;
   ledgerPath?: string;
   preferred?: Template[];
+  /** If set, only these templates may win (2/2/2 mix). */
+  allowedTemplates?: Template[];
 };
 
 export function scanExpiry(input: ScanInput): Decision {
@@ -27,7 +30,11 @@ export function scanExpiry(input: ScanInput): Decision {
   if (!input.isOpen) return { action: "no_trade", reason: "Cash session closed." };
   if (lastFifteenMinutesPdt(input.asOf)) return { action: "no_trade", reason: "Last 15 minutes of RTH." };
 
-  const order = input.preferred?.length ? [...input.preferred, ...ALL_TEMPLATES.filter((t) => !input.preferred!.includes(t))] : ALL_TEMPLATES;
+  const base = input.preferred?.length
+    ? [...input.preferred, ...ALL_TEMPLATES.filter((t) => !input.preferred!.includes(t))]
+    : ALL_TEMPLATES;
+  const order = input.allowedTemplates ? base.filter((t) => input.allowedTemplates!.includes(t)) : base;
+  if (!order.length) return { action: "no_trade", reason: MIX_CAP_REASON };
   const scored = [];
   for (const template of order) {
     for (const extra of [0, 1]) {

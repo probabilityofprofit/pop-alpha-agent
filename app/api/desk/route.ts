@@ -1,4 +1,5 @@
 import { loadLastScan } from "@/lib/last-scan";
+import { EQUITY_FLOOR } from "@/lib/loop-policy";
 import { loadLoopStatus } from "@/lib/loop-status";
 import { getAccount, getClock, getOrders, getPositions, haltPresent, paperKeysReady } from "@/lib/paper-broker";
 import { readLedger, readTestBook } from "@/lib/read-ledger";
@@ -36,7 +37,7 @@ export async function GET() {
     payload.account = account;
     payload.positions = positions;
     payload.orders = orders;
-    payload.halt = payload.halt || Number(account.equity) <= 95_000;
+    payload.halt = payload.halt || Number(account.equity) <= EQUITY_FLOOR;
   } catch (err) {
     payload.error = err instanceof Error ? err.message : "Paper read failed.";
   }

@@ -10,19 +10,25 @@ import { closeJoinLimit } from "../governor/payoff";
 import { keepName } from "../governor/tape";
 import type { Decision, Template } from "../governor/types";
 import { mcpPayload, scanExpiry } from "../governor/cycle";
+import { ALL_TEMPLATES } from "../governor/strikes";
+import { MIX_CAP_REASON, allowedTemplates, mixAllows, mixCounts } from "../governor/mix";
 import { markBook, shouldExit } from "./closer";
 import type { LastScan } from "./desk-types";
 import { dispatchPending, type DoorPending, type DoorPersist } from "./door-dispatch";
 import { saveLastScan } from "./last-scan";
 import {
+  BOOK_CAP,
+  EQUITY_FLOOR,
   LAST_FIFTEEN_CANCEL,
   SCAN_END_CANCEL,
+  SESSION_OPEN_CAP,
   cancelPayload,
+  capQty,
   fillsToLog,
   skippedScanReason,
   workingDayOrders,
 } from "./loop-policy";
-import { booksFromPositions, openUnderlyings, type OpenBook } from "./packages-from-positions";
+import { booksFromPositions, openUnderlyings, templateFromWorkingLegs, type OpenBook } from "./packages-from-positions";
 import { writeHalt } from "./paper-door";
 import {
   getAccount,
@@ -45,8 +51,7 @@ import { fetchThesis, type ThesisResult } from "./thesis";
 export const SCAN_EVERY_MS = 15 * 60 * 1000;
 export const EXIT_EVERY_MS = 60 * 1000;
 export const SCAN_WALL_MS = 4 * 60 * 1000;
-export const SESSION_OPEN_CAP = 3;
-export const BOOK_CAP = 0.05;
+export { BOOK_CAP, EQUITY_FLOOR, SESSION_OPEN_CAP } from "./loop-policy";
 
 export type { DoorKind, DoorPending } from "./door-dispatch";
 
@@ -58,6 +63,7 @@ export type LoopTick = {
   lastFifteen: boolean;
   opensThisSession: number;
   thesis: ThesisResult;
+  skip: string | null;
   exits: Array<{ underlying: string; reason: string; pnl: number }>;
   scan?: LastScan;
   pending: DoorPending | null;
@@ -103,6 +109,15 @@ function sessionOpens(orders: PaperOrder[], sessionYmd: string): number {
     if (day === sessionYmd) n += 1;
   }
   return n;
+}
+
+function bookTemplates(books: OpenBook[], openOrders: PaperOrder[]): Template[] {
+  const out = books.map((b) => b.pkg.template);
+  for (const order of workingDayOrders(openOrders)) {
+    const template = templateFromWorkingLegs(order.legs);
+    if (template) out.push(template);
+  }
+  return out;
 }
 
 function bookUsd(books: OpenBook[]): number {
@@ -183,6 +198,7 @@ async function scoreName(input: {
   halt: boolean;
   cycleId: string;
   preferred?: Template[];
+  allowedTemplates?: Template[];
 }): Promise<Decision> {
   const bounds = tenorBounds(input.asOf);
   const [chain, spots] = await Promise.all([
@@ -217,6 +233,7 @@ async function scoreName(input: {
       cycleId: input.cycleId,
       ledgerPath: LEDGER_PATH,
       preferred: input.preferred,
+      allowedTemplates: input.allowedTemplates,
     });
     best = betterPropose(best, decision);
   }
@@ -299,7 +316,7 @@ export async function runScanCycle(
   const id = cycleId(asOf);
   const [clock, account] = await Promise.all([getClock(), getAccount()]);
   const equity = Number(account.equity);
-  const halt = haltPresent() || equity <= 95_000;
+  const halt = haltPresent() || equity <= EQUITY_FLOOR;
   const already = openUnderlyings(books);
   const tape = await buildTape(already);
   const thesis = await fetchThesis(tape);
@@ -334,6 +351,12 @@ export async function runScanCycle(
     return finish({ action: "no_trade", reason: "A working DAY open is already live." }, null);
   }
 
+  const mix = mixCounts(bookTemplates(books, openOrders));
+  const allowed = allowedTemplates(mix, ALL_TEMPLATES);
+  if (!allowed.length) {
+    return finish({ action: "no_trade", reason: MIX_CAP_REASON }, null);
+  }
+
   const hinted = !thesis.skip ? thesis.hint.underlying : null;
   const ordered = hinted && tape.includes(hinted) ? [hinted, ...tape.filter((s) => s !== hinted)] : tape;
   const deadline = Date.now() + SCAN_WALL_MS;
@@ -351,6 +374,7 @@ export async function runScanCycle(
       halt: false,
       cycleId: id,
       preferred,
+      allowedTemplates: allowed,
     });
     if (decision.action === "propose") {
       const next = betterPropose(best, decision);
@@ -360,9 +384,13 @@ export async function runScanCycle(
   }
 
   if (best.action === "propose") {
+    const qty = capQty(best.qty);
+    if (qty !== best.qty) best = { ...best, qty };
     const extra = bookUsd(books) + best.package.maxLoss * best.qty;
     if (extra > BOOK_CAP * equity) {
-      best = { action: "no_trade", reason: "Book cap 5% of equity." };
+      best = { action: "no_trade", reason: `Book cap ${Math.round(BOOK_CAP * 100)}% of equity.` };
+    } else if (!mixAllows(mix, best.package.template)) {
+      best = { action: "no_trade", reason: MIX_CAP_REASON };
     }
   }
 
@@ -380,11 +408,11 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
   const sessionYmd = ymd(asOf);
   const [clock, account, orders] = await Promise.all([getClock(), getAccount(), getOrders()]);
   const equity = Number(account.equity);
-  if (equity <= 95_000 && !haltPresent()) {
+  if (equity <= EQUITY_FLOOR && !haltPresent()) {
     writeHalt("equity floor");
     appendLedger(LEDGER_PATH, { ts: asOf.toISOString(), kind: "halt", reason: "equity floor", equity });
   }
-  const halt = haltPresent() || equity <= 95_000;
+  const halt = haltPresent() || equity <= EQUITY_FLOOR;
   const lastFifteen = lastFifteenMinutesPdt(asOf);
   const opensThisSession = sessionOpens(orders, sessionYmd);
 
@@ -424,6 +452,7 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
   });
 
   if (idle) {
+    thesis = { skip: true, reason: idle };
     logCycle(asOf, id, "idle", { action: "no_trade", reason: idle }, thesis);
   } else {
     const working = workingDayOrders(exitRun.openOrders);
@@ -452,6 +481,9 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
     lastFifteen,
     opensThisSession,
     thesis,
+    skip:
+      idle ??
+      (scan?.decision.action === "no_trade" ? scan.decision.reason : null),
     exits: exitRun.exits,
     scan,
     pending: dispatched.pending,
