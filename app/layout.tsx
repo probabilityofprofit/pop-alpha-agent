@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "POP Alpha Desk",
   description: "Governed paper options agent cockpit for the Alpaca Options Alpha Agents hackathon.",
+  icons: { icon: "/icon.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

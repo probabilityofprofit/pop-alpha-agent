@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { BlotterTable } from "@/desk/blotter-table";
 import { HoldMapGrid } from "@/desk/hold-map";
-import { money, num, pct, pnlClass, templateLabel, when } from "@/desk/fmt";
+import { money, num, pct, templateLabel, when } from "@/desk/fmt";
 import type { DeskPayload } from "@/lib/desk-types";
 import { SESSION_OPEN_CAP } from "@/lib/loop-policy";
 
@@ -166,39 +167,7 @@ export function HomeClient() {
         <article className="panel span-2">
           <header className="panel-head">Paper blotter</header>
           <div className="panel-body" style={{ padding: 0 }}>
-            <table className="data">
-              <thead>
-                <tr>
-                  <th style={{ paddingLeft: 10 }}>Symbol</th>
-                  <th>Qty</th>
-                  <th>Entry</th>
-                  <th>Mark</th>
-                  <th>UPL</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(desk?.positions ?? []).map((p) => (
-                  <tr key={p.symbol}>
-                    <td className="mono" style={{ paddingLeft: 10 }}>
-                      {p.symbol}
-                    </td>
-                    <td className="mono">
-                      {p.side} {p.qty}
-                    </td>
-                    <td className="mono">{p.avg_entry_price}</td>
-                    <td className="mono">{p.current_price}</td>
-                    <td className={`mono ${pnlClass(Number(p.unrealized_pl))}`}>{money(p.unrealized_pl)}</td>
-                  </tr>
-                ))}
-                {!desk?.positions.length ? (
-                  <tr>
-                    <td colSpan={5} style={{ paddingLeft: 10, color: "var(--dim)" }}>
-                      No open paper positions, or keys not loaded.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
+            <BlotterTable positions={desk?.positions ?? []} />
           </div>
         </article>
       </div>

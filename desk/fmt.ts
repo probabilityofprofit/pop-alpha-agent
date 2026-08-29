@@ -31,6 +31,15 @@ export function templateLabel(t: string): string {
   return t.replaceAll("_", " ");
 }
 
+/** Title case for blotter strategy cells: bear_call → Bear Call. */
+export function strategyTitle(t: string): string {
+  return t
+    .split("_")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 export function when(iso?: string): string {
   if (!iso) return "—";
   const d = new Date(iso);

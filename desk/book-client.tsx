@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { money, pnlClass, when } from "@/desk/fmt";
+import { BlotterTable } from "@/desk/blotter-table";
+import { when } from "@/desk/fmt";
 import type { DeskPayload } from "@/lib/desk-types";
 
 export function BookClient() {
@@ -18,39 +19,7 @@ export function BookClient() {
       <article className="panel">
         <header className="panel-head">Open positions</header>
         <div className="panel-body" style={{ padding: 0 }}>
-          <table className="data">
-            <thead>
-              <tr>
-                <th>Symbol</th>
-                <th>Class</th>
-                <th>Qty</th>
-                <th>Entry</th>
-                <th>Mark</th>
-                <th>UPL</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(desk?.positions ?? []).map((p) => (
-                <tr key={p.symbol}>
-                  <td className="mono">{p.symbol}</td>
-                  <td>{p.asset_class}</td>
-                  <td className="mono">
-                    {p.side} {p.qty}
-                  </td>
-                  <td className="mono">{p.avg_entry_price}</td>
-                  <td className="mono">{p.current_price}</td>
-                  <td className={`mono ${pnlClass(Number(p.unrealized_pl))}`}>{money(p.unrealized_pl)}</td>
-                </tr>
-              ))}
-              {!desk?.positions.length ? (
-                <tr>
-                  <td colSpan={6} style={{ color: "var(--dim)" }}>
-                    None.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
+          <BlotterTable positions={desk?.positions ?? []} empty="None." />
         </div>
       </article>
 

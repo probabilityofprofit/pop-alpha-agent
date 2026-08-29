@@ -40,7 +40,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
     <div className="shell">
       <header className="topbar">
         <Link href="/" className="brand">
-          <span className="mark">P</span>
+          <img className="brand-logo" src="/icon.png" alt="POP" width={22} height={22} />
           <strong>POP</strong>
           <em>Alpha Desk</em>
         </Link>
