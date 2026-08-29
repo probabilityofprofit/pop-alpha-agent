@@ -1,7 +1,13 @@
 export default function PolicyPage() {
   return (
     <article className="panel policy">
-      <header className="panel-head">Governor, this window</header>
+      <header
+        className="panel-head"
+        data-tip="Narrative for this contest window. Hard numbers live on Risk."
+        data-tip-pos="below"
+      >
+        Governor, this window
+      </header>
       <div className="panel-body">
         <p>
           This desk was authored 28 Aug 2026. Defined-risk verticals, a probability-of-profit hold

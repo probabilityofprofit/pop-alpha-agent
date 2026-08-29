@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { num, when } from "@/desk/fmt";
+import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
 
 export function ScanClient() {
@@ -33,23 +34,29 @@ export function ScanClient() {
         Last universe the loop scored. Chain preview stays on Tape.
       </p>
       <article className="panel">
-        <header className="panel-head">Last scan</header>
+        <header className="panel-head">
+          <Tip tip="Snapshot from the last cash-session tape build." below>
+            Last scan
+          </Tip>
+        </header>
         <div className="panel-body">
           {!tape ? (
             <p>No tape yet. The loop writes one here on the next cash-session scan.</p>
           ) : (
             <div className="kv">
-              <span>When</span>
+              <Tip tip="When the loop last built this universe.">When</Tip>
               <span className="mono">{when(tape.at)}</span>
-              <span>On tape</span>
+              <Tip tip="Names that cleared filters and made the scored tape.">On tape</Tip>
               <span className="mono">{tape.kept.join(" ") || "—"}</span>
-              <span>Already open</span>
+              <Tip tip="Dropped because a package is already open in that name.">Already open</Tip>
               <span className="mono">{tape.alreadyOpen.join(" ") || "—"}</span>
-              <span>Winner</span>
+              <Tip tip="Governor propose winner, or no_trade.">Winner</Tip>
               <span className="mono">
                 {tape.decision === "propose" ? tape.winner ?? "propose" : tape.decision ?? "—"}
               </span>
-              <span>Thesis</span>
+              <Tip tip="Optional model JSON hint. Model never places; governor still owns the pick.">
+                Thesis
+              </Tip>
               <span>
                 {tape.thesis?.skip
                   ? tape.thesis.reason ?? "Skipped"
@@ -62,28 +69,66 @@ export function ScanClient() {
       </article>
 
       <div className="toolbar">
-        <button type="button" className={filter === "all" ? "" : "ghost"} onClick={() => setFilter("all")}>
+        <button
+          type="button"
+          className={filter === "all" ? "" : "ghost"}
+          onClick={() => setFilter("all")}
+          data-tip="Show every name the tape builder considered."
+          data-tip-pos="below"
+        >
           All {tape?.rows.length ?? 0}
         </button>
-        <button type="button" className={filter === "kept" ? "" : "ghost"} onClick={() => setFilter("kept")}>
+        <button
+          type="button"
+          className={filter === "kept" ? "" : "ghost"}
+          onClick={() => setFilter("kept")}
+          data-tip="Only names that made the scored tape (including SPY/QQQ backstop)."
+          data-tip-pos="below"
+        >
           On tape {tape?.rows.filter((r) => r.kept).length ?? 0}
         </button>
-        <button type="button" className={filter === "dropped" ? "" : "ghost"} onClick={() => setFilter("dropped")}>
+        <button
+          type="button"
+          className={filter === "dropped" ? "" : "ghost"}
+          onClick={() => setFilter("dropped")}
+          data-tip="Names that failed a filter or sat below the tape cap."
+          data-tip-pos="below"
+        >
           Dropped {tape?.rows.filter((r) => !r.kept).length ?? 0}
         </button>
       </div>
 
       <article className="panel">
-        <header className="panel-head">Universe</header>
+        <header className="panel-head">
+          <Tip tip="Actives + movers + SPY/QQQ, with the reason each name was kept or dropped." below>
+            Universe
+          </Tip>
+        </header>
         <div className="panel-body" style={{ padding: 0 }}>
           <table className="data wrap">
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Last</th>
-                <th>Volume</th>
-                <th>Gate</th>
-                <th>Reason</th>
+                <th>
+                  <Tip tip="Latest stock print used by the tape filter." below>
+                    Last
+                  </Tip>
+                </th>
+                <th>
+                  <Tip tip="Most-active volume when available — used to rank the tape." below>
+                    Volume
+                  </Tip>
+                </th>
+                <th>
+                  <Tip tip="Kept on tape, index backstop, or dropped." below>
+                    Gate
+                  </Tip>
+                </th>
+                <th>
+                  <Tip tip="Why the name passed or failed." below>
+                    Reason
+                  </Tip>
+                </th>
               </tr>
             </thead>
             <tbody>

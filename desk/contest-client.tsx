@@ -75,9 +75,24 @@ export function ContestClient() {
           <span className="mono">$100,000</span> paper book on total equity — and the workflow that produced it.
         </p>
         <div className="contest-clock">
-          <span className={`pill ${phase === "closed" ? "veto" : "propose"}`}>{PHASE[phase]}</span>
+          <span
+            className={`pill ${phase === "closed" ? "veto" : "propose"}`}
+            data-tip={
+              phase === "build"
+                ? "Before Mon 31 9:30 a.m. ET — test fills do not score."
+                : phase === "official"
+                  ? "Official P&L window — total equity is the number."
+                  : "After Fri 4 9:30 a.m. ET — snapshot is the print."
+            }
+          >
+            {PHASE[phase]}
+          </span>
           {phase !== "closed" ? (
-            <span className="mono contest-eta">
+            <span
+              className="mono contest-eta tip"
+              data-tip="Countdown to the next contest clock in America/New_York."
+              tabIndex={0}
+            >
               {anchor.label} in {remainingLabel(now, anchor.at)}
             </span>
           ) : (
@@ -87,10 +102,22 @@ export function ContestClient() {
       </section>
 
       <div className="toolbar">
-        <button type="button" className={view === "contest" ? "" : "ghost"} onClick={() => setView("contest")}>
+        <button
+          type="button"
+          className={view === "contest" ? "" : "ghost"}
+          onClick={() => setView("contest")}
+          data-tip="Official week clocks for newcomers and judges."
+          data-tip-pos="below"
+        >
           Contest week
         </button>
-        <button type="button" className={view === "repo" ? "" : "ghost"} onClick={() => setView("repo")}>
+        <button
+          type="button"
+          className={view === "repo" ? "" : "ghost"}
+          onClick={() => setView("repo")}
+          data-tip="Features landed in this repo during the hackathon window."
+          data-tip-pos="below"
+        >
           Repository timeline
         </button>
       </div>
@@ -117,7 +144,23 @@ export function ContestClient() {
             <div className="panel-body">
               <ol className="contest-week">
                 {WEEK.map((d) => (
-                  <li key={d.ymd} data-tone={d.tone} data-today={d.ymd === today ? "true" : "false"}>
+                  <li
+                    key={d.ymd}
+                    data-tone={d.tone}
+                    data-today={d.ymd === today ? "true" : "false"}
+                    data-tip={
+                      d.tone === "test"
+                        ? "Test book only — does not score."
+                        : d.tone === "build"
+                          ? "Build weekend. Open the official $100k paper for Monday."
+                          : d.tone === "official"
+                            ? "Official P&L session. Total equity scores."
+                            : d.ymd === "2026-09-03"
+                              ? "Thursday EOD mark includes Sep 3 assignment."
+                              : "Friday 9:30 a.m. ET snapshot, then flatten."
+                    }
+                    data-tip-pos="below"
+                  >
                     <span className="contest-week-dow">{d.dow}</span>
                     <span className="contest-week-day mono">{d.day}</span>
                     <span className="contest-week-tag">{d.tag}</span>

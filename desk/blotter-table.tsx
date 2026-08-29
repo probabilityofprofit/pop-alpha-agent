@@ -1,6 +1,7 @@
 "use client";
 
 import { money, num, pct, pnlClass, strategyTitle } from "@/desk/fmt";
+import { Tip } from "@/desk/tip";
 import { groupPositionsForBlotter } from "@/lib/packages-from-positions";
 import type { PaperPosition } from "@/lib/paper-broker";
 import type { Template } from "@/governor/types";
@@ -29,16 +30,56 @@ export function BlotterTable({
     <table className="data blotter">
       <thead>
         <tr>
-          <th>Strategy</th>
-          <th>Expiry</th>
-          <th>Net</th>
-          <th className="blotter-pkg-upl">Strategy UPL</th>
-          <th className="blotter-pkg-upl">% Max</th>
-          <th className="blotter-symbol">Symbol</th>
-          <th>Qty</th>
-          <th>Entry</th>
-          <th>Mark</th>
-          <th>UPL</th>
+          <th>
+            <Tip tip="Inferred defined-risk package: bull/bear vertical or iron." below>
+              Strategy
+            </Tip>
+          </th>
+          <th>
+            <Tip tip="Package expiration and calendar DTE." below>
+              Expiry
+            </Tip>
+          </th>
+          <th>
+            <Tip tip="Entry net premium in points — credit (cr) or debit (db)." below>
+              Net
+            </Tip>
+          </th>
+          <th className="blotter-pkg-upl">
+            <Tip tip="Sum of unrealized P&L across the package legs." below>
+              Strategy UPL
+            </Tip>
+          </th>
+          <th className="blotter-pkg-upl">
+            <Tip tip="Strategy UPL as a percent of max profit. Take is ~50%." below>
+              % Max
+            </Tip>
+          </th>
+          <th className="blotter-symbol">
+            <Tip tip="OCC option symbol for the leg." below>
+              Symbol
+            </Tip>
+          </th>
+          <th>
+            <Tip tip="Side and quantity of this leg." below>
+              Qty
+            </Tip>
+          </th>
+          <th>
+            <Tip tip="Average entry price for the leg." below>
+              Entry
+            </Tip>
+          </th>
+          <th>
+            <Tip tip="Current mark from the paper account." below>
+              Mark
+            </Tip>
+          </th>
+          <th>
+            <Tip tip="Unrealized P&L for this leg only." below>
+              UPL
+            </Tip>
+          </th>
         </tr>
       </thead>
       <tbody>

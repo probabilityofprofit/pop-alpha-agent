@@ -2,9 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { field, when } from "@/desk/fmt";
+import { Tip } from "@/desk/tip";
 import type { LedgerRow } from "@/lib/desk-types";
 
 const FALLBACK_KINDS = ["cycle", "score", "order", "fill", "cancel", "exit", "halt", "mark"];
+
+const KIND_TIP: Record<string, string> = {
+  cycle: "Final or idle loop decision — propose or no_trade.",
+  score: "Per-name hold-map score while scanning the tape.",
+  order: "Door order attempt (open/close/legwise).",
+  fill: "pop-alpha fill seen on the paper account.",
+  cancel: "Working DAY cancel (scan end or last 15).",
+  exit: "Take/stop close requested from the mark poll.",
+  halt: "Equity floor or HALT file written.",
+  mark: "Open package crossed take or stop on a mark.",
+};
 
 function summary(row: LedgerRow): string {
   return (
@@ -45,7 +57,13 @@ export function LedgerClient() {
   return (
     <div className="stack">
       <div className="toolbar">
-        <button type="button" className={filter === "all" ? "" : "ghost"} onClick={() => setFilter("all")}>
+        <button
+          type="button"
+          className={filter === "all" ? "" : "ghost"}
+          onClick={() => setFilter("all")}
+          data-tip="Show every ledger kind."
+          data-tip-pos="below"
+        >
           All {rows.length}
         </button>
         {kinds.map((kind) => {
@@ -56,6 +74,8 @@ export function LedgerClient() {
               type="button"
               className={filter === kind ? "" : "ghost"}
               onClick={() => setFilter(kind)}
+              data-tip={KIND_TIP[kind] ?? `Filter to ${kind} rows.`}
+              data-tip-pos="below"
             >
               {kind} {n}
             </button>
@@ -65,7 +85,9 @@ export function LedgerClient() {
       {error ? <p className="notice">{error}</p> : null}
       <article className="panel">
         <header className="panel-head">
-          Ledger
+          <Tip tip="Append-only journal of autonomy — cycles, scores, fills, cancels, halts." below>
+            Ledger
+          </Tip>
           <span className="mono" style={{ color: "var(--faint)", fontWeight: 500 }}>
             {shown.length} / {rows.length} · hackathon/ledger.jsonl
           </span>
@@ -75,10 +97,26 @@ export function LedgerClient() {
             <thead>
               <tr>
                 <th>When</th>
-                <th>Kind</th>
-                <th>Name</th>
-                <th>Decision</th>
-                <th>Reason</th>
+                <th>
+                  <Tip tip="Row kind and idle/final scope when present." below>
+                    Kind
+                  </Tip>
+                </th>
+                <th>
+                  <Tip tip="Underlying, symbol, order id, or short tape." below>
+                    Name
+                  </Tip>
+                </th>
+                <th>
+                  <Tip tip="propose / no_trade, or template when scored." below>
+                    Decision
+                  </Tip>
+                </th>
+                <th>
+                  <Tip tip="Why the governor or door wrote this row." below>
+                    Reason
+                  </Tip>
+                </th>
               </tr>
             </thead>
             <tbody>

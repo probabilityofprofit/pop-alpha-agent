@@ -197,9 +197,42 @@ table.data td.down,
   background: var(--down);
 }
 
+.topbar-right {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.repo-link {
+  display: inline-flex;
+  height: 28px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface-2);
+  padding: 0 10px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.repo-link:hover {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--line));
+  color: var(--ink);
+  background: var(--surface-3);
+}
+
+.repo-mark {
+  display: block;
+  flex-shrink: 0;
+}
+
 .metrics {
   display: none;
-  margin-left: auto;
   align-items: center;
   gap: 16px;
 }
@@ -355,6 +388,58 @@ table.data td.down,
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--line);
+}
+
+/* Hover tooltips — labels keep a dotted cue; TipLayer portals the bubble. */
+.tip {
+  cursor: help;
+  border-bottom: 1px dotted color-mix(in oklab, var(--faint) 55%, transparent);
+}
+
+a[data-tip],
+button[data-tip],
+.side a[data-tip],
+.repo-link[data-tip],
+.pill[data-tip],
+.contest-week li[data-tip],
+.env[data-tip],
+.clock[data-tip],
+.brand[data-tip],
+input[data-tip],
+.panel-head[data-tip],
+.title[data-tip],
+p[data-tip],
+th[data-tip],
+.cell[data-tip],
+.hold-row .mono[data-tip] {
+  cursor: help;
+}
+
+.pill[data-tip],
+.contest-week li[data-tip] {
+  cursor: help;
+}
+
+.tip-float {
+  position: fixed;
+  z-index: 9999;
+  width: max-content;
+  max-width: 240px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface-3);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  text-transform: none;
+  white-space: normal;
+  text-align: left;
+  pointer-events: none;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
 }
 
 .panel-head {
@@ -818,6 +903,22 @@ table.data.wrap td {
 .tl > li[data-state="now"] .tl-rail::after {
   background: var(--accent);
   box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px color-mix(in oklab, var(--accent) 35%, transparent);
+  animation: tl-now-pulse 3.6s ease-out infinite;
+}
+
+@keyframes tl-now-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px color-mix(in oklab, var(--accent) 40%, transparent);
+  }
+  55% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px var(--surface), 0 0 0 12px color-mix(in oklab, var(--accent) 0%, transparent);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px color-mix(in oklab, var(--accent) 40%, transparent);
+  }
 }
 
 .tl > li[data-state="next"] .tl-card {

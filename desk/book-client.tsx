@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BlotterTable } from "@/desk/blotter-table";
 import { when } from "@/desk/fmt";
+import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
 
 export function BookClient() {
@@ -17,24 +18,40 @@ export function BookClient() {
   return (
     <div className="stack">
       <article className="panel">
-        <header className="panel-head">Open positions</header>
+        <header className="panel-head">
+          <Tip tip="Live paper option packages from Alpaca. Hover blotter headers for field meanings." below>
+            Open positions
+          </Tip>
+        </header>
         <div className="panel-body" style={{ padding: 0 }}>
           <BlotterTable positions={desk?.positions ?? []} empty="None." />
         </div>
       </article>
 
       <article className="panel">
-        <header className="panel-head">Recent orders</header>
+        <header className="panel-head">
+          <Tip tip="Recent paper orders. pop-alpha-* client ids are from this agent." below>
+            Recent orders
+          </Tip>
+        </header>
         <div className="panel-body" style={{ padding: 0 }}>
           <table className="data">
             <thead>
               <tr>
                 <th>When</th>
                 <th>Status</th>
-                <th>Class</th>
+                <th>
+                  <Tip tip="mleg for multi-leg packages." below>
+                    Class
+                  </Tip>
+                </th>
                 <th>Limit</th>
                 <th>Fill</th>
-                <th>Client id</th>
+                <th>
+                  <Tip tip="Client order id — pop-alpha-* marks this agent." below>
+                    Client id
+                  </Tip>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -61,7 +78,11 @@ export function BookClient() {
       </article>
 
       <article className="panel">
-        <header className="panel-head">Friday test book (does not score)</header>
+        <header className="panel-head">
+          <Tip tip="Friday 28 Aug test book (X17N). Official P&L uses a new $100k account from Mon 31." below>
+            Friday test book (does not score)
+          </Tip>
+        </header>
         <div className="panel-body">
           <pre className="door" style={{ whiteSpace: "pre-wrap", maxHeight: 360 }}>
             {desk?.testBook || "hackathon/TEST_BOOK.md"}

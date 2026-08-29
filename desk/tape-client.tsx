@@ -57,14 +57,34 @@ export function TapeClient() {
           onChange={(e) => setSymbol(e.target.value.toUpperCase())}
           aria-label="Underlying"
           className="mono"
+          data-tip="Underlying to load. Desk reads paper chain only."
+          data-tip-pos="below"
         />
-        <button type="button" onClick={() => void load()} disabled={busy}>
+        <button
+          type="button"
+          onClick={() => void load()}
+          disabled={busy}
+          data-tip="Fetch the 0–21 DTE option chain from Alpaca paper/data."
+          data-tip-pos="below"
+        >
           {busy ? "Loading…" : "Load 0–21 DTE chain"}
         </button>
-        <button className="ghost" type="button" onClick={() => void score()} disabled={busy}>
+        <button
+          className="ghost"
+          type="button"
+          onClick={() => void score()}
+          disabled={busy}
+          data-tip="Dry-run the governor on this name. Posts a proposal to Desk. Does not place."
+          data-tip-pos="below"
+        >
           Preview this name
         </button>
-        <Link href="/scan" style={{ color: "var(--dim)", fontSize: 12 }}>
+        <Link
+          href="/scan"
+          style={{ color: "var(--dim)", fontSize: 12 }}
+          data-tip="Names the unattended loop kept or dropped on the last tape."
+          data-tip-pos="below"
+        >
           Last universe
         </Link>
         {data?.spot != null ? (

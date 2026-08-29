@@ -80,7 +80,9 @@ const ROWS: Array<{ label: string; value: string; note?: string }> = [
 export default function RiskPage() {
   return (
     <article className="panel policy risk">
-      <header className="panel-head">Risk settings</header>
+      <header className="panel-head" data-tip="Hard gates from loop-policy / mix / pick — not suggestions." data-tip-pos="below">
+        Risk settings
+      </header>
       <div className="panel-body">
         <p>
           Live constants from the governor. These are the hard gates on size, book, halt, mix, and
@@ -89,9 +91,15 @@ export default function RiskPage() {
         <table className="data risk-table">
           <thead>
             <tr>
-              <th>Gate</th>
-              <th>Setting</th>
-              <th>Detail</th>
+              <th data-tip="Governor gate name." data-tip-pos="below">
+                Gate
+              </th>
+              <th data-tip="Value the live loop enforces." data-tip-pos="below">
+                Setting
+              </th>
+              <th data-tip="How the gate is applied." data-tip-pos="below">
+                Detail
+              </th>
             </tr>
           </thead>
           <tbody>

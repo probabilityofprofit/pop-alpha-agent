@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BlotterTable } from "@/desk/blotter-table";
 import { HoldMapGrid } from "@/desk/hold-map";
 import { money, num, pct, templateLabel, when } from "@/desk/fmt";
+import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
 import { SESSION_OPEN_CAP } from "@/lib/loop-policy";
 
@@ -36,7 +37,12 @@ export function HomeClient() {
     <>
       {error ? <p className="notice">{error}</p> : null}
       {desk?.lastLoop ? (
-        <p className="mono" style={{ margin: 0, color: "var(--dim)", fontSize: 12 }}>
+        <p
+          className="mono"
+          data-tip="Last unattended loop tick. Open Loop for heartbeat and capacity."
+          data-tip-pos="below"
+          style={{ margin: 0, color: "var(--dim)", fontSize: 12 }}
+        >
           Loop {when(desk.lastLoop.at)} · session opens {desk.lastLoop.opensThisSession}/{SESSION_OPEN_CAP} ·{" "}
           {desk.lastLoop.pending
             ? `MCP ${desk.lastLoop.pending.kind} ${desk.lastLoop.pending.sent ? "sent" : "ready"}`
@@ -52,37 +58,57 @@ export function HomeClient() {
 
       <div className="grid">
         <article className="panel">
-          <header className="panel-head">Proposal</header>
+          <header className="panel-head">
+            <Tip tip="Governor pick from the last scan. Desk never places the order." below>
+              Proposal
+            </Tip>
+          </header>
           <div className="panel-body">
             {!decision ? (
               <p>No proposal yet. The loop writes one here when it scans.</p>
             ) : decision.action === "no_trade" ? (
               <>
-                <span className="pill veto">Veto</span>
+                <span
+                  className="pill veto"
+                  data-tip="Governor vetoed — no MCP payload. Reason is the hard gate that failed."
+                >
+                  Veto
+                </span>
                 <p style={{ marginTop: 10, color: "var(--ink)" }}>{decision.reason}</p>
               </>
             ) : (
               <>
-                <span className="pill propose">Propose</span>
+                <span
+                  className="pill propose"
+                  data-tip="Cleared size, book, mix, and Friday hold-map gates."
+                >
+                  Propose
+                </span>
                 <div className="title">
                   {decision.package.underlying} {templateLabel(decision.package.template)}
                 </div>
                 <div className="kv">
-                  <span>Expiry</span>
+                  <Tip tip="One expiry per ticket. Contest window ends Fri 4 Sep.">Expiry</Tip>
                   <span className="mono">
                     {decision.package.expiration} · {decision.package.dte} DTE
                   </span>
-                  <span>Qty / limit</span>
+                  <Tip tip="Qty = floor(1% equity ÷ |max loss|). Limit joins NBBO.">Qty / limit</Tip>
                   <span className="mono">
                     {decision.qty} @ {num(decision.limit)} {decision.package.credit ? "credit" : "debit"}
                   </span>
-                  <span>Max profit</span>
+                  <Tip tip="Defined-risk max profit for this package × qty is not shown here — this is per 1× package.">
+                    Max profit
+                  </Tip>
                   <span className="mono up">{money(decision.package.maxProfit)}</span>
-                  <span>Max loss</span>
+                  <Tip tip="Defined risk per 1× package. Book cap sums max loss × qty.">Max loss</Tip>
                   <span className="mono down">{money(decision.package.maxLoss)}</span>
-                  <span>POP by Friday</span>
+                  <Tip tip="Share of Monte Carlo paths with mark P&L > 0 on the Friday / manage-by day. Gate ≥ 35.">
+                    POP by Friday
+                  </Tip>
                   <span className="mono">{pct(decision.map.popAtManageBy)}</span>
-                  <span>Manage by</span>
+                  <Tip tip="Hold-map day used for gates — min(DTE, days to Fri 4 Sep), at least 1.">
+                    Manage by
+                  </Tip>
                   <span className="mono">day {decision.manageByDays}</span>
                 </div>
                 <table className="legs" style={{ marginTop: 12 }}>
@@ -113,7 +139,11 @@ export function HomeClient() {
         </article>
 
         <article className="panel">
-          <header className="panel-head">Hold map</header>
+          <header className="panel-head">
+            <Tip tip="Monte Carlo grid: P(path has reached that % of max profit by that day). Gates use the Friday row." below>
+              Hold map
+            </Tip>
+          </header>
           <div className="panel-body">
             {decision?.action === "propose" ? (
               <HoldMapGrid map={decision.map} manageByDays={decision.manageByDays} />
@@ -124,7 +154,11 @@ export function HomeClient() {
         </article>
 
         <article className="panel">
-          <header className="panel-head">Ledger</header>
+          <header className="panel-head">
+            <Tip tip="Latest rows from hackathon/ledger.jsonl. Full journal is on Ledger." below>
+              Ledger
+            </Tip>
+          </header>
           <div className="panel-body">
             <ol className="ledger">
               {(desk?.ledger ?? []).slice(0, 24).map((row, i) => (
@@ -145,9 +179,18 @@ export function HomeClient() {
 
         <article className="panel">
           <header className="panel-head">
-            MCP door
+            <Tip tip="MCP place_option_order JSON. This desk never POSTs it. Copy into Cursor or let LOOP_SEND send." below>
+              MCP door
+            </Tip>
             {scanRow?.mcp ? (
-              <button type="button" className="btn ghost" onClick={() => void copyDoor()} style={{ height: 22, fontSize: 10 }}>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => void copyDoor()}
+                style={{ height: 22, fontSize: 10 }}
+                data-tip="Copy the mleg payload to the clipboard."
+                data-tip-pos="below"
+              >
                 Copy JSON
               </button>
             ) : null}
@@ -165,7 +208,11 @@ export function HomeClient() {
         </article>
 
         <article className="panel span-2">
-          <header className="panel-head">Paper blotter</header>
+          <header className="panel-head">
+            <Tip tip="Open paper option packages grouped by strategy. Hover column headers for field meanings." below>
+              Paper blotter
+            </Tip>
+          </header>
           <div className="panel-body" style={{ padding: 0 }}>
             <BlotterTable positions={desk?.positions ?? []} />
           </div>
