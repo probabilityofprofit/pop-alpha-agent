@@ -587,6 +587,33 @@ table.blotter td.blotter-net {
   max-width: 720px;
 }
 
+.policy.risk {
+  max-width: 960px;
+}
+
+.risk-table {
+  margin-top: 12px;
+}
+
+.risk-table td {
+  height: auto;
+  padding: 8px 12px 8px 0;
+  vertical-align: top;
+}
+
+.risk-table td:first-child {
+  color: var(--dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.risk-table td:last-child {
+  color: var(--dim);
+  white-space: normal;
+}
+
 .policy ol {
   padding-left: 18px;
   color: var(--ink);
