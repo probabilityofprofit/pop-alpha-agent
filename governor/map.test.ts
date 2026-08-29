@@ -20,7 +20,18 @@ describe("hold map", () => {
     assert.ok(map);
     assert.ok(map!.popAtExpiration >= 0);
     assert.ok(map!.popAtExpiration <= 100);
+    assert.ok(map!.popAtManageBy >= 0);
+    assert.ok(map!.popAtManageBy <= 100);
     assert.ok(cell(map!, 14, 50) >= 0);
     assert.ok(cell(map!, 1, 25) >= 0);
+  });
+  it("maps a 0DTE package as one day to cash", () => {
+    const pkg = buildTemplate("bull_put", DEMO_QUOTES, DEMO_SPOT, "DEMO", "2026-08-31", 0);
+    assert.ok(pkg);
+    const map = simulateHoldMap(pkg!, DEMO_SPOT, lcg(3), 1);
+    assert.ok(map);
+    assert.ok(map!.cells[1]);
+    assert.equal(Object.keys(map!.cells).length, 1);
+    assert.equal(map!.popAtManageBy, map!.popAtExpiration);
   });
 });

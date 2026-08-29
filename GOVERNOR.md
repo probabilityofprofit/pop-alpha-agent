@@ -36,13 +36,13 @@ Each scan:
 3. Drop crypto, OTC, halted, last < $10, names with an open or working package.
 4. Drop corp actions (div/split/merger/spinoff) in the next 21 calendar days.
 5. Drop **new credits** on event week: news in 36 hours matching earnings/EPS, or IV term ≤ 0.90. Debits may still score.
-6. Keep names with some 7–21 DTE expiry that has contract volume ≥ 1,000 and OI ≥ 500 on short-leg candidates.
+6. Keep names with some 0–21 DTE expiry that has contract volume ≥ 1,000 and OI ≥ 500 on short-leg candidates.
 7. Rank by that window’s option volume. Max 15 names.
 8. Keep SPY and QQQ if they pass leg liquidity, unless they fail 4–5 or already have a package.
 
 Ignore a model ticker that is not on the tape.
 
-Tenor: 7–21 calendar DTE, one expiry per ticket, no 0DTE. If more than three expiries in the window, score those closest to 7, 14, and 21 DTE.
+Tenor: 0–21 calendar DTE, one expiry per ticket. Always score expiries that settle on or before Fri 4 Sep (including 0DTE). Also score those closest to 7, 14, and 21 DTE. No new risk on Fri 4 Sep, so Friday 0DTE is not opened. Thursday 3 Sep 0DTE is allowed; assignment that day is in Alpaca’s Thursday EOD figure.
 
 ## 3. Templates and strikes
 
@@ -67,16 +67,17 @@ Enumerate every legal template that still fits size/book. Score model hint first
 
 ## 4. Score and pick
 
-Monte Carlo hold map, 1500 trials, rate 0.05, day step 1, targets 25/50/75/100. Volatility = average listed IV of the legs; skip if any required IV is missing. Do not gate on a path-to-target “pop” scalar.
+Monte Carlo hold map, 1500 trials, rate 0.05, day step 1, targets 25/50/75/100. Volatility = average listed IV of the legs; skip if any required IV is missing. 0DTE is one day-step to a cash mark. Official equity is a Friday 4 Sep 9:30 ET mark, not expiration, so gates use the Friday / manage-by row.
 
 Keep a candidate only if:
 
-- Probability of profit at expiration ≥ 35 and mean P&L ≥ 0
-- P(reach 50% of max profit by expiry) ≥ 40
+- Probability of profit on the manage-by day ≥ 35 and mean mark P&L that day ≥ 0
 - P(reach 25% of max profit by manage-by) ≥ 25
-- manage-by days = min(DTE, calendar days to 2026-09-04), at least 1
+- manage-by days = min(max(DTE, 1), calendar days to 2026-09-04), at least 1
 
-Rank by manage-by 50% cell, then expiry 50% cell, then fewer DTE, then vertical over iron. Select `(underlying, template, expiration)`. Log overrides when the model loses. None pass → no-trade.
+Expiry POP stays on the grid for eyes. It does not pass or rank a package.
+
+Rank by manage-by 50% cell, then Friday POP, then Friday mean P&L, then fewer DTE, then vertical over iron. Select `(underlying, template, expiration)`. Log overrides when the model loses. None pass → no-trade.
 
 ## 5. Size, book, limit
 
@@ -88,7 +89,7 @@ DAY only. Join net NBBO: debit at net ask, credit at net bid. Do not cross. Clos
 
 ## 6. Cycle
 
-Scan every 15 minutes in the cash session. 4-minute wall; if time expires, pick among maps already finished. One new open per scan, five per session, one working DAY open. Cancel unfilled at scan end and at the last-15-minutes cutoff.
+Scan every 2.5 minutes from 9:30–10:30 a.m. ET (open print after overnight/weekend), then every 15 minutes. 4-minute wall; if a scan runs long, the next starts 2.5 or 15 minutes after it finishes. If time expires, pick among maps already finished. One new open per scan, five per session, one working DAY open. Cancel unfilled at scan end and at the last-15-minutes cutoff.
 
 Exit poll every 60 seconds while anything is open: marks only, no Monte Carlo.
 
@@ -125,6 +126,6 @@ Friday 4 Sep 9:30 a.m. ET: `CONTEST.md` / `CONTEST.json` from MCP account, histo
 
 ## Allow / deny
 
-Allow: bull/bear call and put verticals, iron condor, iron butterfly, explicit no-trade, scan with modelSkip.
+Allow: bull/bear call and put verticals, iron condor, iron butterfly, 0–21 DTE including 0DTE, explicit no-trade, scan with modelSkip.
 
 Deny: naked shorts, unlimited-loss straddles/strangles/ratios, stock, crypto, single-leg, calendars, diagonals, off-tape names, second package in a name, live trading, market mleg, model qty/limit/OCC, invented P&L, holding a working DAY into the next scan or into the last 15 minutes of RTH, a send path that is not the MCP-shaped paper door.

@@ -58,10 +58,10 @@ export function TapeClient() {
           className="mono"
         />
         <button type="button" onClick={() => void load()} disabled={busy}>
-          {busy ? "Loading…" : "Load 7–21 DTE chain"}
+          {busy ? "Loading…" : "Load 0–21 DTE chain"}
         </button>
         <button className="ghost" type="button" onClick={() => void score()} disabled={busy}>
-          Score this name
+          Preview this name
         </button>
         {data?.spot != null ? (
           <span className="mono" style={{ color: "var(--dim)", fontSize: 12 }}>

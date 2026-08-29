@@ -40,6 +40,9 @@ export type Package = {
 export type HoldMap = {
   popAtExpiration: number;
   meanPnl: number;
+  /** Share of paths with mark P&L > 0 on the Friday / manage-by day. */
+  popAtManageBy: number;
+  meanPnlAtManageBy: number;
   /** map[day][pct] = share of paths that hit that % of max profit by that day */
   cells: Record<number, Record<number, number>>;
 };

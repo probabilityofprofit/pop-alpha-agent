@@ -1,7 +1,7 @@
 /** Contest calendar. Authored 28 Aug 2026. */
 
 export const WINDOW_END = "2026-09-04";
-export const MIN_DTE = 7;
+export const MIN_DTE = 0;
 export const MAX_DTE = 21;
 
 export function ymd(d: Date, timeZone = "America/New_York"): string {
@@ -40,20 +40,21 @@ export function inTenorWindow(dte: number): boolean {
 
 export function manageByDays(dte: number, asOf: Date): number {
   const toEnd = Math.max(1, calendarDaysBetween(ymd(asOf), WINDOW_END));
-  return Math.max(1, Math.min(dte, toEnd));
+  return Math.max(1, Math.min(Math.max(dte, 1), toEnd));
 }
 
-/** If more than three expiries in 7–21 DTE, keep those closest to 7, 14, and 21. */
-export function pickTenors<T extends { dte: number }>(rows: T[]): T[] {
-  const inWin = rows.filter((r) => inTenorWindow(r.dte)).sort((a, b) => a.dte - b.dte);
-  if (inWin.length <= 3) return inWin;
-  const targets = [7, 14, 21];
+function settlesInWindow(row: { dte: number; expiration?: string }): boolean {
+  if (row.expiration) return row.expiration <= WINDOW_END;
+  return row.dte === 0;
+}
+
+function closestTo<T extends { dte: number }>(rows: T[], targets: number[]): T[] {
   const chosen: T[] = [];
   const used = new Set<number>();
   for (const t of targets) {
     let best: T | null = null;
     let bestDist = Infinity;
-    for (const row of inWin) {
+    for (const row of rows) {
       if (used.has(row.dte)) continue;
       const dist = Math.abs(row.dte - t);
       if (dist < bestDist) {
@@ -66,7 +67,25 @@ export function pickTenors<T extends { dte: number }>(rows: T[]): T[] {
       chosen.push(best);
     }
   }
-  return chosen.sort((a, b) => a.dte - b.dte);
+  return chosen;
+}
+
+/** Keep expiries that settle by 4 Sep (including 0DTE), plus those closest to 7, 14, and 21. */
+export function pickTenors<T extends { dte: number; expiration?: string }>(rows: T[]): T[] {
+  const inWin = rows.filter((r) => inTenorWindow(r.dte)).sort((a, b) => a.dte - b.dte);
+  if (!inWin.length) return [];
+  const contest = inWin.filter(settlesInWindow);
+  const later = inWin.filter((r) => !settlesInWindow(r));
+  const far = later.length <= 3 ? later : closestTo(later, [7, 14, 21]);
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const row of [...contest, ...far].sort((a, b) => a.dte - b.dte)) {
+    const key = row.expiration ?? String(row.dte);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
 }
 
 export function lastFifteenMinutesPdt(asOf: Date): boolean {

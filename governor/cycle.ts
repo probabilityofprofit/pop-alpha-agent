@@ -62,7 +62,8 @@ export function scanExpiry(input: ScanInput): Decision {
       qty: decision.action === "propose" ? decision.qty : undefined,
       limit: decision.action === "propose" ? decision.limit : undefined,
       popAtExpiration: decision.action === "propose" ? decision.map.popAtExpiration : undefined,
-      meanPnl: decision.action === "propose" ? decision.map.meanPnl : undefined,
+      popAtManageBy: decision.action === "propose" ? decision.map.popAtManageBy : undefined,
+      meanPnl: decision.action === "propose" ? decision.map.meanPnlAtManageBy : undefined,
       manageByDays: decision.action === "propose" ? decision.manageByDays : undefined,
     });
   }

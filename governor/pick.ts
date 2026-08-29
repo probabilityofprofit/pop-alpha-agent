@@ -4,7 +4,7 @@ import { manageByDays } from "./calendar";
 import { cell, simulateHoldMap } from "./map";
 import { sizeQty } from "./paper";
 import { joinLimit } from "./payoff";
-import type { Decision, Package } from "./types";
+import type { Decision, HoldMap, Package } from "./types";
 
 export type Scored = {
   pkg: Package;
@@ -13,16 +13,19 @@ export type Scored = {
   qty: number;
   limit: number;
   contest50: number;
-  expiry50: number;
 };
 
+export function passesContestGates(map: HoldMap, manageBy: number): boolean {
+  if (map.popAtManageBy < 35 || map.meanPnlAtManageBy < 0) return false;
+  if (cell(map, manageBy, 25) < 25) return false;
+  return true;
+}
+
 export function scorePackage(pkg: Package, spot: number, equity: number, asOf: Date, rand?: () => number): Scored | null {
-  const map = simulateHoldMap(pkg, spot, rand);
-  if (!map) return null;
   const mb = manageByDays(pkg.dte, asOf);
-  if (map.popAtExpiration < 35 || map.meanPnl < 0) return null;
-  if (cell(map, pkg.dte, 50) < 40) return null;
-  if (cell(map, mb, 25) < 25) return null;
+  const map = simulateHoldMap(pkg, spot, rand, mb);
+  if (!map) return null;
+  if (!passesContestGates(map, mb)) return null;
   const qty = sizeQty(equity, pkg.maxLoss);
   if (qty < 1) return null;
   const limit = joinLimit(pkg);
@@ -35,16 +38,31 @@ export function scorePackage(pkg: Package, spot: number, equity: number, asOf: D
     qty,
     limit,
     contest50: cell(map, mb, 50),
-    expiry50: cell(map, pkg.dte, 50),
   };
 }
 
 export function rank(a: Scored, b: Scored): number {
   return (
     b.contest50 - a.contest50 ||
-    b.expiry50 - a.expiry50 ||
+    b.map.popAtManageBy - a.map.popAtManageBy ||
+    b.map.meanPnlAtManageBy - a.map.meanPnlAtManageBy ||
     a.pkg.dte - b.pkg.dte ||
-    (a.pkg.legs.length - b.pkg.legs.length)
+    a.pkg.legs.length - b.pkg.legs.length
+  );
+}
+
+export function comparePropose(
+  a: Extract<Decision, { action: "propose" }>,
+  b: Extract<Decision, { action: "propose" }>,
+): number {
+  const a50 = cell(a.map, a.manageByDays, 50);
+  const b50 = cell(b.map, b.manageByDays, 50);
+  return (
+    b50 - a50 ||
+    b.map.popAtManageBy - a.map.popAtManageBy ||
+    b.map.meanPnlAtManageBy - a.map.meanPnlAtManageBy ||
+    a.package.dte - b.package.dte ||
+    a.package.legs.length - b.package.legs.length
   );
 }
 

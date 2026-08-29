@@ -8,6 +8,34 @@ export const BOOK_CAP = 0.1;
 export const EQUITY_FLOOR = 90_000;
 /** Fat-finger ceiling when LOOP_MAX_QTY is unset. Does not replace 1% sizing. */
 export const DEFAULT_MAX_QTY = 12;
+/** Rest-of-session tape interval. */
+export const SCAN_EVERY_MS = 15 * 60 * 1000;
+/** First cash hour: catch the open print after overnight/weekend. */
+export const OPEN_SCAN_EVERY_MS = Math.round(2.5 * 60 * 1000);
+const CASH_OPEN_MINUTES_ET = 9 * 60 + 30;
+const OPEN_SCAN_END_MINUTES_ET = 10 * 60 + 30;
+
+function etMinutes(asOf: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(asOf);
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return hour * 60 + minute;
+}
+
+/** 9:30–10:30 a.m. ET. Faster tape so Monday’s open is not a single 15m shot. */
+export function inOpeningScanWindow(asOf: Date): boolean {
+  const mins = etMinutes(asOf);
+  return mins >= CASH_OPEN_MINUTES_ET && mins < OPEN_SCAN_END_MINUTES_ET;
+}
+
+export function scanIntervalMs(asOf: Date): number {
+  return inOpeningScanWindow(asOf) ? OPEN_SCAN_EVERY_MS : SCAN_EVERY_MS;
+}
 
 export function loopSendEnabled(sendFlag: string | undefined = process.env.LOOP_SEND): boolean {
   return sendFlag === "true";

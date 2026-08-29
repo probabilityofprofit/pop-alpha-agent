@@ -8,7 +8,6 @@ import { SESSION_OPEN_CAP } from "@/lib/loop-policy";
 
 export function HomeClient() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -24,25 +23,6 @@ export function HomeClient() {
     return () => clearInterval(t);
   }, [load]);
 
-  async function scan(source: "demo" | "paper") {
-    setBusy(source);
-    setError(null);
-    try {
-      const res = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ source, symbol: "SPY" }),
-      });
-      const json = (await res.json()) as { ok: boolean; error?: string };
-      if (!json.ok) setError(json.error ?? "Scan failed.");
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Scan failed.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   async function copyDoor() {
     if (!desk?.lastScan?.mcp) return;
     await navigator.clipboard.writeText(JSON.stringify(desk.lastScan.mcp, null, 2));
@@ -53,15 +33,7 @@ export function HomeClient() {
 
   return (
     <>
-      <div className="toolbar">
-        <button type="button" onClick={() => void scan("demo")} disabled={busy != null}>
-          {busy === "demo" ? "Scoring demo…" : "Score demo chain"}
-        </button>
-        <button className="ghost" type="button" onClick={() => void scan("paper")} disabled={busy != null || !desk?.paperReady}>
-          {busy === "paper" ? "Scoring SPY…" : "Score SPY paper tape"}
-        </button>
-        {error ? <p className="notice">{error}</p> : null}
-      </div>
+      {error ? <p className="notice">{error}</p> : null}
       {desk?.lastLoop ? (
         <p className="mono" style={{ margin: 0, color: "var(--dim)", fontSize: 12 }}>
           Loop {when(desk.lastLoop.at)} · session opens {desk.lastLoop.opensThisSession}/{SESSION_OPEN_CAP} ·{" "}
@@ -82,7 +54,7 @@ export function HomeClient() {
           <header className="panel-head">Proposal</header>
           <div className="panel-body">
             {!decision ? (
-              <p>No scan yet. Score the demo chain to mint a hold map, or score SPY from paper.</p>
+              <p>No proposal yet. The loop writes one here when it scans.</p>
             ) : decision.action === "no_trade" ? (
               <>
                 <span className="pill veto">Veto</span>
@@ -107,8 +79,8 @@ export function HomeClient() {
                   <span className="mono up">{money(decision.package.maxProfit)}</span>
                   <span>Max loss</span>
                   <span className="mono down">{money(decision.package.maxLoss)}</span>
-                  <span>POP expiry</span>
-                  <span className="mono">{pct(decision.map.popAtExpiration)}</span>
+                  <span>POP by Friday</span>
+                  <span className="mono">{pct(decision.map.popAtManageBy)}</span>
                   <span>Manage by</span>
                   <span className="mono">day {decision.manageByDays}</span>
                 </div>
@@ -145,7 +117,7 @@ export function HomeClient() {
             {decision?.action === "propose" ? (
               <HoldMapGrid map={decision.map} manageByDays={decision.manageByDays} />
             ) : (
-              <p>Cells are P(path has reached that % of max profit by that day).</p>
+              <p>Cells are P(path has reached that % of max profit by that day). Gates use the Friday row, not expiry.</p>
             )}
           </div>
         </article>

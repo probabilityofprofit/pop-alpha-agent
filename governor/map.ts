@@ -34,25 +34,36 @@ function pnlFromMark(pkg: Package, mark: number): number {
   return mark - entry;
 }
 
-export function simulateHoldMap(pkg: Package, spot: number, rand: () => number = Math.random): HoldMap | null {
+export function simulateHoldMap(
+  pkg: Package,
+  spot: number,
+  rand: () => number = Math.random,
+  manageByDays = Math.max(1, pkg.dte),
+): HoldMap | null {
   const vol = avgIv(pkg);
-  if (vol == null || !(spot > 0) || pkg.dte < 1) return null;
+  const simDays = Math.max(1, pkg.dte);
+  if (vol == null || !(spot > 0)) return null;
+  const mb = Math.max(1, Math.min(Math.round(manageByDays) || 1, simDays));
   const dt = 1 / 365;
   const hits: Record<number, Record<number, number>> = {};
-  for (let d = 1; d <= pkg.dte; d += 1) {
+  for (let d = 1; d <= simDays; d += 1) {
     hits[d] = { 25: 0, 50: 0, 75: 0, 100: 0 };
   }
   let pop = 0;
   let sum = 0;
+  let popManage = 0;
+  let sumManage = 0;
   for (let i = 0; i < TRIALS; i += 1) {
     let s = spot;
     let expiry = 0;
+    let manage = 0;
     const seen: Record<number, boolean> = { 25: false, 50: false, 75: false, 100: false };
-    for (let day = 1; day <= pkg.dte; day += 1) {
+    for (let day = 1; day <= simDays; day += 1) {
       s *= Math.exp((RATE - 0.5 * vol * vol) * dt + vol * Math.sqrt(dt) * gauss(rand));
       const years = Math.max((pkg.dte - day) / 365, 0);
       const pnl = pnlFromMark(pkg, markPackage(pkg, s, years, vol));
       expiry = pnl;
+      if (day === mb) manage = pnl;
       for (const t of TARGETS) {
         if (!seen[t] && pnl >= (t / 100) * pkg.maxProfit) seen[t] = true;
       }
@@ -62,9 +73,11 @@ export function simulateHoldMap(pkg: Package, spot: number, rand: () => number =
     }
     sum += expiry;
     if (expiry > 0) pop += 1;
+    sumManage += manage;
+    if (manage > 0) popManage += 1;
   }
   const cells: HoldMap["cells"] = {};
-  for (let d = 1; d <= pkg.dte; d += 1) {
+  for (let d = 1; d <= simDays; d += 1) {
     cells[d] = {};
     for (const t of TARGETS) {
       cells[d]![t] = (100 * hits[d]![t]!) / TRIALS;
@@ -73,6 +86,8 @@ export function simulateHoldMap(pkg: Package, spot: number, rand: () => number =
   return {
     popAtExpiration: (100 * pop) / TRIALS,
     meanPnl: sum / TRIALS,
+    popAtManageBy: (100 * popManage) / TRIALS,
+    meanPnlAtManageBy: sumManage / TRIALS,
     cells,
   };
 }

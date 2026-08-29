@@ -1,11 +1,11 @@
-/** One RTH tick: 60s marks, 15m scan. Authored 28 Aug 2026. */
+/** One RTH tick: 60s marks, 2.5m scan in the opening hour, 15m after. Authored 28 Aug 2026. */
 
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { allowNewRisk, dteFrom, lastFifteenMinutesPdt, pickTenors, tenorBounds, ymd } from "../governor/calendar";
 import { closeMleg } from "../governor/door";
 import { appendLedger, cycleDecision } from "../governor/ledger";
-import { cell } from "../governor/map";
+import { comparePropose } from "../governor/pick";
 import { closeJoinLimit } from "../governor/payoff";
 import { keepName } from "../governor/tape";
 import type { Decision, Template } from "../governor/types";
@@ -25,6 +25,7 @@ import {
   cancelPayload,
   capQty,
   fillsToLog,
+  scanIntervalMs,
   skippedScanReason,
   workingDayOrders,
 } from "./loop-policy";
@@ -48,10 +49,9 @@ import { LEDGER_PATH, LOOP_STATUS_PATH } from "./paths";
 import { expirationsInSnapshots, quotesFromSnapshots } from "./quotes-from-chain";
 import { fetchThesis, type ThesisResult } from "./thesis";
 
-export const SCAN_EVERY_MS = 15 * 60 * 1000;
 export const EXIT_EVERY_MS = 60 * 1000;
 export const SCAN_WALL_MS = 4 * 60 * 1000;
-export { BOOK_CAP, EQUITY_FLOOR, SESSION_OPEN_CAP } from "./loop-policy";
+export { BOOK_CAP, EQUITY_FLOOR, SCAN_EVERY_MS, SESSION_OPEN_CAP } from "./loop-policy";
 
 export type { DoorKind, DoorPending } from "./door-dispatch";
 
@@ -127,10 +127,7 @@ function bookUsd(books: OpenBook[]): number {
 function betterPropose(a: Decision, b: Decision): Decision {
   if (a.action !== "propose") return b;
   if (b.action !== "propose") return a;
-  const ac = cell(a.map, a.manageByDays, 50);
-  const bc = cell(b.map, b.manageByDays, 50);
-  if (bc !== ac) return bc > ac ? b : a;
-  return a.package.dte <= b.package.dte ? a : b;
+  return comparePropose(a, b) <= 0 ? a : b;
 }
 
 function logCycle(
@@ -439,7 +436,7 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
     (clock.is_open &&
       allowNewRisk(asOf) &&
       !lastFifteen &&
-      (opts.lastScanAt == null || asOf.getTime() - opts.lastScanAt >= SCAN_EVERY_MS));
+      (opts.lastScanAt == null || asOf.getTime() - opts.lastScanAt >= scanIntervalMs(asOf)));
 
   const idle = skippedScanReason({
     isOpen: clock.is_open,

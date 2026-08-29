@@ -7,8 +7,10 @@ import { buildTemplate } from "./strikes";
 import type { OccQuote } from "./types";
 
 describe("calendar", () => {
-  it("keeps 7-21 DTE", () => {
-    assert.equal(inTenorWindow(6), false);
+  it("keeps 0-21 DTE", () => {
+    assert.equal(inTenorWindow(-1), false);
+    assert.equal(inTenorWindow(0), true);
+    assert.equal(inTenorWindow(6), true);
     assert.equal(inTenorWindow(7), true);
     assert.equal(inTenorWindow(21), true);
     assert.equal(inTenorWindow(22), false);
@@ -16,6 +18,7 @@ describe("calendar", () => {
   it("caps manage-by at the 4 Sep window", () => {
     const asOf = new Date("2026-08-31T13:30:00Z");
     assert.equal(manageByDays(21, asOf), 4);
+    assert.equal(manageByDays(0, asOf), 1);
   });
   it("adds calendar days on the UTC date", () => {
     assert.equal(addDaysYmd("2026-08-28", 7), "2026-09-04");
@@ -24,11 +27,26 @@ describe("calendar", () => {
     assert.equal(allowNewRisk(new Date("2026-08-28T16:00:00Z")), true);
     assert.equal(allowNewRisk(new Date("2026-09-04T14:00:00Z")), false);
   });
-  it("picks 7/14/21-ish tenors", () => {
+  it("picks 7/14/21-ish tenors when nothing settles by 4 Sep", () => {
     const rows = [8, 10, 12, 14, 16, 20].map((dte) => ({ dte }));
     assert.deepEqual(
       pickTenors(rows).map((r) => r.dte),
       [8, 14, 20],
+    );
+  });
+  it("keeps 0DTE and other expiries that settle by 4 Sep", () => {
+    const rows = [
+      { dte: 0, expiration: "2026-08-31" },
+      { dte: 3, expiration: "2026-09-03" },
+      { dte: 8, expiration: "2026-09-08" },
+      { dte: 10, expiration: "2026-09-10" },
+      { dte: 14, expiration: "2026-09-14" },
+      { dte: 16, expiration: "2026-09-16" },
+      { dte: 20, expiration: "2026-09-20" },
+    ];
+    assert.deepEqual(
+      pickTenors(rows).map((r) => r.dte),
+      [0, 3, 8, 14, 20],
     );
   });
 });

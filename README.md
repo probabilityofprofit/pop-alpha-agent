@@ -8,7 +8,7 @@ This repository contains **only code authored during the hackathon window**. It 
 
 1. Build a liquid options tape from Alpaca MCP (`get_most_active_stocks`, `get_market_movers`, chains).
 2. Optional LLM emits a small JSON hint (name / structure / bias). It never calls the broker.
-3. Governor builds defined-risk verticals or irons, scores a hold map, sizes 1% of equity, joins NBBO.
+3. Governor builds defined-risk verticals or irons (0–21 DTE), scores a hold map to the Friday mark, sizes 1% of equity, joins NBBO.
 4. Execution is MCP `place_option_order` (mleg) on **paper only**.
 5. Ledger + contest snapshot for the official P&L window.
 
@@ -44,13 +44,13 @@ npm run loop -- --once --scan-now
 npm run loop
 ```
 
-Every 60 seconds it marks open packages (50% take / 50% stop) and appends a cycle row, including no-trade. Every 15 minutes in the cash session it builds a tape, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps, and builds an MCP-shaped payload. Session cap is 5 new opens. Book cap is 10% of equity; halt at $90k. Last 15 minutes of RTH: no new risk; cancel every working DAY open. Unfilled DAY opens are cancelled at the next scan.
+Every 60 seconds it marks open packages (50% take / 50% stop) and appends a cycle row, including no-trade. In the cash session it builds a tape every 2.5 minutes from 9:30–10:30 a.m. ET, then every 15 minutes, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps to the Friday 4 Sep mark (0–21 DTE, including 0DTE), and builds an MCP-shaped payload. Session cap is 5 new opens. Book cap is 10% of equity; halt at $90k. Last 15 minutes of RTH: no new risk; cancel every working DAY open. Unfilled DAY opens are cancelled at the next scan.
 
 Default: print the payload (`LOOP_SEND` unset/false). Set `LOOP_SEND=true` in `.env.local` to have this process send that same mleg body to `paper-api.alpaca.markets` (paper keys only, DAY limit, 2–4 legs). That is the MCP `place_option_order` JSON over paper HTTP so the unattended loop can run without a human paste. The model never calls the door. Cursor MCP `place_option_order` remains valid for a human paste.
 
 Set `OPENAI_API_KEY` in `.env.local` to enable the thesis. Missing or bad JSON is `modelSkip`; the governor still scans.
 
-The Alpha Desk is at `http://127.0.0.1:3001` (port 3001 so it does not collide with any other local app). Score a demo chain, or score SPY from paper. The desk **reads** paper account/chain over GET. It **never** places orders.
+The Alpha Desk is at `http://127.0.0.1:3001` (port 3001 so it does not collide with any other local app). It shows the last loop proposal, hold map, ledger, and paper blotter. The desk **reads** paper account/chain over GET. It **never** places orders. Preview a name from Tape if you want a dry run.
 
 ## Cockpit (this week, this repo)
 

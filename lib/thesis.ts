@@ -76,7 +76,7 @@ export async function fetchThesis(tape: string[], env: NodeJS.ProcessEnv = proce
       },
       {
         role: "user",
-        content: `Tape: ${tape.join(", ") || "(empty)"}. Contest window ends 2026-09-04 9:30 ET. Prefer 7-21 DTE defined-risk.`,
+        content: `Tape: ${tape.join(", ") || "(empty)"}. Contest window ends 2026-09-04 9:30 ET. Prefer 0-21 DTE defined-risk. Same-day and weeklies that settle by 4 Sep are in play.`,
       },
     ],
   };

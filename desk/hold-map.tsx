@@ -18,7 +18,11 @@ export function HoldMapGrid({ map, manageByDays }: { map: HoldMap; manageByDays:
   return (
     <div>
       <p className="mono" style={{ marginTop: 0, color: "var(--ink)" }}>
-        POP at expiry {map.popAtExpiration.toFixed(1)}% · mean P&amp;L {map.meanPnl.toFixed(0)}
+        POP by Friday {map.popAtManageBy.toFixed(1)}% · mean Friday P&amp;L {map.meanPnlAtManageBy.toFixed(0)}
+        <span style={{ color: "var(--faint)" }}>
+          {" "}
+          · expiry {map.popAtExpiration.toFixed(1)}%
+        </span>
       </p>
       <div className="hold">
         <div className="hold-head mono">

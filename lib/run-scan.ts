@@ -72,9 +72,9 @@ export async function runDeskScan(input: {
     : pickTenors(expirationsInSnapshots(chain.snapshots).map((expiration) => ({ expiration, dte: dteFrom(expiration, asOf) }))).map(
         (r) => r.expiration,
       );
-  const expiration = expiries.find((e) => dteFrom(e, asOf) >= 7) ?? expiries[0];
+  const expiration = expiries[0];
   if (!expiration) {
-    const decision = { action: "no_trade" as const, reason: "No 7–21 DTE expiry on the paper chain." };
+    const decision = { action: "no_trade" as const, reason: "No 0–21 DTE expiry on the paper chain." };
     const row: LastScan = {
       at: asOf.toISOString(),
       source: "paper",

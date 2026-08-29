@@ -4,8 +4,12 @@ import {
   BOOK_CAP,
   DEFAULT_MAX_QTY,
   EQUITY_FLOOR,
+  OPEN_SCAN_EVERY_MS,
+  SCAN_EVERY_MS,
   SESSION_OPEN_CAP,
   capQty,
+  inOpeningScanWindow,
+  scanIntervalMs,
   cancelPayload,
   clearCloseAttempts,
   fillsToLog,
@@ -21,6 +25,18 @@ describe("loopSendEnabled", () => {
     assert.equal(loopSendEnabled(undefined), false);
     assert.equal(loopSendEnabled("1"), false);
     assert.equal(loopSendEnabled("true"), true);
+  });
+});
+
+describe("opening scan cadence", () => {
+  it("is 2.5 minutes from 9:30–10:30 ET, then 15 minutes", () => {
+    const open = new Date("2026-08-31T13:35:00Z");
+    const after = new Date("2026-08-31T14:35:00Z");
+    assert.equal(inOpeningScanWindow(open), true);
+    assert.equal(inOpeningScanWindow(after), false);
+    assert.equal(scanIntervalMs(open), OPEN_SCAN_EVERY_MS);
+    assert.equal(scanIntervalMs(after), SCAN_EVERY_MS);
+    assert.equal(OPEN_SCAN_EVERY_MS, 150_000);
   });
 });
 
