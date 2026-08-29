@@ -21,6 +21,8 @@ const LINKS = [
 ];
 
 const REPO_URL = "https://github.com/probabilityofprofit/pop-alpha-agent";
+const LABLAB_URL =
+  "https://lablab.ai/ai-hackathons/alpaca-ai-trading-agents-hackathon/probability-of-profit";
 
 function GitHubMark() {
   return (
@@ -92,17 +94,30 @@ export function Frame({ children }: { children: React.ReactNode }) {
           {open ? "Market open" : "Market closed"}
         </div>
         <div className="topbar-right">
-          <a
-            className="repo-link"
-            href={REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-tip="Open the contest repository on GitHub."
-            data-tip-pos="below"
-          >
-            <GitHubMark />
-            <span>GitHub</span>
-          </a>
+          <div className="ext-links">
+            <a
+              className="repo-link"
+              href={LABLAB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-tip="Open the Probability of Profit team page on LabLab."
+              data-tip-pos="below"
+            >
+              <img className="lablab-mark" src="/lablab.png" alt="" width={14} height={14} />
+              <span>LabLab</span>
+            </a>
+            <a
+              className="repo-link"
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-tip="Open the contest repository on GitHub."
+              data-tip-pos="below"
+            >
+              <GitHubMark />
+              <span>GitHub</span>
+            </a>
+          </div>
           <div className="metrics">
             <div className="metric">
               <Tip tip="Alpaca paper total equity — the contest scores equity, not cash." below>

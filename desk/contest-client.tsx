@@ -74,30 +74,56 @@ export function ContestClient() {
           A one-week paper-options hackathon. Build an autonomous agent, then they score a dedicated{" "}
           <span className="mono">$100,000</span> paper book on total equity — and the workflow that produced it.
         </p>
-        <div className="contest-clock">
-          <span
-            className={`pill ${phase === "closed" ? "veto" : "propose"}`}
-            data-tip={
-              phase === "build"
-                ? "Before Mon 31 9:30 a.m. ET — test fills do not score."
-                : phase === "official"
-                  ? "Official P&L window — total equity is the number."
-                  : "After Fri 4 9:30 a.m. ET — snapshot is the print."
-            }
-          >
-            {PHASE[phase]}
-          </span>
-          {phase !== "closed" ? (
+        <div className="contest-hero-foot">
+          <div className="contest-clock">
             <span
-              className="mono contest-eta tip"
-              data-tip="Countdown to the next contest clock in America/New_York."
-              tabIndex={0}
+              className={`pill ${phase === "closed" ? "veto" : "propose"}`}
+              data-tip={
+                phase === "build"
+                  ? "Before Mon 31 9:30 a.m. ET — test fills do not score."
+                  : phase === "official"
+                    ? "Official P&L window — total equity is the number."
+                    : "After Fri 4 9:30 a.m. ET — snapshot is the print."
+              }
             >
-              {anchor.label} in {remainingLabel(now, anchor.at)}
+              {PHASE[phase]}
             </span>
-          ) : (
-            <span className="mono contest-eta">Fri 4 Sep 9:30 a.m. ET snapshot is the print</span>
-          )}
+            {phase !== "closed" ? (
+              <span
+                className="mono contest-eta tip"
+                data-tip="Countdown to the next contest clock in America/New_York."
+                tabIndex={0}
+              >
+                {anchor.label} in {remainingLabel(now, anchor.at)}
+              </span>
+            ) : (
+              <span className="mono contest-eta">Fri 4 Sep 9:30 a.m. ET snapshot is the print</span>
+            )}
+          </div>
+          <div className="contest-hosts">
+            <a
+              className="host-link host-alpaca"
+              href="https://alpaca.markets"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-tip="Alpaca homepage — paper trading API and MCP for this hackathon."
+              data-tip-pos="below"
+            >
+              <img className="host-mark" src="/alpaca.png" alt="" width={16} height={16} />
+              <span>Alpaca</span>
+            </a>
+            <a
+              className="host-link host-lablab"
+              href="https://lablab.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-tip="LabLab homepage — hackathon host and team submissions."
+              data-tip-pos="below"
+            >
+              <img className="host-mark" src="/lablab.png" alt="" width={16} height={16} />
+              <span>LabLab</span>
+            </a>
+          </div>
         </div>
       </section>
 
