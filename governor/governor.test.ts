@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { addDaysYmd, allowNewRisk, inTenorWindow, manageByDays, pickTenors } from "./calendar";
-import { keepName, rankTape } from "./tape";
+import { classifyTape, dropReason, keepName, rankTape } from "./tape";
 import { sizeQty, spreadOk } from "./paper";
 import { buildTemplate } from "./strikes";
 import type { OccQuote } from "./types";
@@ -67,6 +67,23 @@ describe("tape", () => {
     );
     assert.ok(top.some((n) => n.symbol === "AAA"));
     assert.ok(top.some((n) => n.symbol === "SPY"));
+  });
+  it("explains drops and still backstops SPY after the cap", () => {
+    assert.equal(dropReason({ symbol: "NVDA", last: 180 }, new Set(["NVDA"])), "Already has a package.");
+    const classified = classifyTape(
+      [
+        { symbol: "AAA", last: 20, optionVolume: 9000 },
+        { symbol: "BBB", last: 20, optionVolume: 8000 },
+        { symbol: "CCC", last: 8, optionVolume: 7000 },
+        { symbol: "SPY", last: 400, optionVolume: 10 },
+      ],
+      new Set(),
+      1,
+    );
+    assert.deepEqual(classified.kept, ["AAA", "SPY"]);
+    assert.equal(classified.rows.find((r) => r.symbol === "BBB")?.reason, "Below tape cap (1).");
+    assert.equal(classified.rows.find((r) => r.symbol === "CCC")?.reason, "Last under $10.");
+    assert.equal(classified.rows.find((r) => r.symbol === "SPY")?.reason, "Index backstop.");
   });
 });
 

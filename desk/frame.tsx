@@ -7,9 +7,13 @@ import { money, pnlClass, signedMoney } from "@/desk/fmt";
 import type { DeskPayload } from "@/lib/desk-types";
 
 const LINKS = [
+  { href: "/contest", label: "Contest" },
   { href: "/", label: "Desk" },
   { href: "/tape", label: "Tape" },
+  { href: "/scan", label: "Scan" },
   { href: "/book", label: "Book" },
+  { href: "/ledger", label: "Ledger" },
+  { href: "/loop", label: "Loop" },
   { href: "/risk", label: "Risk" },
   { href: "/policy", label: "Policy" },
 ];

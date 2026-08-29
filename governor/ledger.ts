@@ -3,7 +3,8 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
-export type LedgerKind = "cycle" | "score" | "order" | "fill" | "cancel" | "exit" | "halt" | "mark";
+export const LEDGER_KINDS = ["cycle", "score", "order", "fill", "cancel", "exit", "halt", "mark"] as const;
+export type LedgerKind = (typeof LEDGER_KINDS)[number];
 
 export function appendLedger(path: string, row: Record<string, unknown>): void {
   mkdirSync(dirname(path), { recursive: true });

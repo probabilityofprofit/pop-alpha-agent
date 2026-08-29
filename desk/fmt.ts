@@ -45,3 +45,25 @@ export function when(iso?: string): string {
   const d = new Date(iso);
   return d.toLocaleString("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", month: "short", day: "numeric" });
 }
+
+export function ageMs(iso?: string, now = Date.now()): number | null {
+  if (!iso) return null;
+  const ms = now - new Date(iso).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+export function ageLabel(iso?: string, now = Date.now()): string {
+  const ms = ageMs(iso, now);
+  if (ms == null) return "—";
+  if (ms < 0) return "just now";
+  if (ms < 60_000) return `${Math.max(1, Math.round(ms / 1000))}s ago`;
+  if (ms < 3_600_000) return `${Math.round(ms / 60_000)}m ago`;
+  return `${Math.round(ms / 3_600_000)}h ago`;
+}
+
+export function field(row: Record<string, unknown>, key: string): string {
+  const v = row[key];
+  if (v == null || v === "") return "";
+  if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") return String(v);
+  return "";
+}

@@ -7,7 +7,7 @@ import { closeMleg } from "../governor/door";
 import { appendLedger, cycleDecision } from "../governor/ledger";
 import { comparePropose } from "../governor/pick";
 import { closeJoinLimit } from "../governor/payoff";
-import { keepName } from "../governor/tape";
+import { classifyTape, type TapeClassRow } from "../governor/tape";
 import type { Decision, Template } from "../governor/types";
 import { mcpPayload, scanExpiry } from "../governor/cycle";
 import { ALL_TEMPLATES } from "../governor/strikes";
@@ -16,6 +16,7 @@ import { markBook, shouldExit } from "./closer";
 import type { LastScan } from "./desk-types";
 import { dispatchPending, type DoorPending, type DoorPersist } from "./door-dispatch";
 import { saveLastScan } from "./last-scan";
+import { saveLastTape } from "./last-tape";
 import {
   BOOK_CAP,
   EQUITY_FLOOR,
@@ -24,6 +25,7 @@ import {
   SESSION_OPEN_CAP,
   cancelPayload,
   capQty,
+  loopSendEnabled,
   fillsToLog,
   scanIntervalMs,
   skippedScanReason,
@@ -66,6 +68,7 @@ export type LoopTick = {
   skip: string | null;
   exits: Array<{ underlying: string; reason: string; pnl: number }>;
   scan?: LastScan;
+  send: boolean;
   pending: DoorPending | null;
   note: string;
   loggedFillIds: string[];
@@ -162,7 +165,7 @@ function logCycle(
   );
 }
 
-async function buildTape(already: Set<string>): Promise<string[]> {
+async function buildTape(already: Set<string>): Promise<{ kept: string[]; rows: TapeClassRow[] }> {
   const [actives, movers] = await Promise.all([getMostActives(), getStockMovers()]);
   const symbols = [...actives.map((a) => a.symbol), ...movers.map((m) => m.symbol), "SPY", "QQQ"];
   const unique = [...new Set(symbols.map((s) => s.toUpperCase()))];
@@ -173,18 +176,8 @@ async function buildTape(already: Set<string>): Promise<string[]> {
     optionVolume: actives.find((a) => a.symbol === symbol)?.volume ?? 0,
     shortOi: 500,
   }));
-  const kept = names.filter((n) => keepName(n, already) && n.last >= 10);
   const cap = Math.max(1, Number(process.env.LOOP_MAX_NAMES) || 15);
-  kept.sort((a, b) => (b.optionVolume ?? 0) - (a.optionVolume ?? 0));
-  const out: string[] = [];
-  for (const n of kept) {
-    if (out.length >= cap) break;
-    out.push(n.symbol);
-  }
-  for (const back of ["SPY", "QQQ"]) {
-    if (!already.has(back) && !out.includes(back) && (spots[back] ?? 0) >= 10) out.push(back);
-  }
-  return out;
+  return classifyTape(names, already, cap);
 }
 
 async function scoreName(input: {
@@ -316,14 +309,25 @@ export async function runScanCycle(
   const halt = haltPresent() || equity <= EQUITY_FLOOR;
   const already = openUnderlyings(books);
   const tape = await buildTape(already);
-  const thesis = await fetchThesis(tape);
+  const thesis = await fetchThesis(tape.kept);
 
   const finish = (decision: Decision, pending: DoorPending | null, bestSpot = 0) => {
-    logCycle(asOf, id, "final", decision, thesis, tape);
+    logCycle(asOf, id, "final", decision, thesis, tape.kept);
+    saveLastTape({
+      at: asOf.toISOString(),
+      kept: tape.kept,
+      alreadyOpen: [...already],
+      rows: tape.rows,
+      decision: decision.action,
+      winner: decision.action === "propose" ? decision.package.underlying : undefined,
+      thesis: thesis.skip
+        ? { skip: true, reason: thesis.reason }
+        : { skip: false, underlying: thesis.hint.underlying, structure: thesis.hint.structure, reason: thesis.hint.thesis },
+    });
     const scan: LastScan = {
       at: asOf.toISOString(),
       source: "paper",
-      underlying: decision.action === "propose" ? decision.package.underlying : (tape[0] ?? ""),
+      underlying: decision.action === "propose" ? decision.package.underlying : (tape.kept[0] ?? ""),
       expiration: decision.action === "propose" ? decision.package.expiration : "",
       spot: bestSpot,
       equity,
@@ -355,7 +359,8 @@ export async function runScanCycle(
   }
 
   const hinted = !thesis.skip ? thesis.hint.underlying : null;
-  const ordered = hinted && tape.includes(hinted) ? [hinted, ...tape.filter((s) => s !== hinted)] : tape;
+  const ordered =
+    hinted && tape.kept.includes(hinted) ? [hinted, ...tape.kept.filter((s) => s !== hinted)] : tape.kept;
   const deadline = Date.now() + SCAN_WALL_MS;
   let best: Decision = { action: "no_trade", reason: "No tenor/template cleared the hold map." };
   let bestSpot = 0;
@@ -483,6 +488,7 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
       (scan?.decision.action === "no_trade" ? scan.decision.reason : null),
     exits: exitRun.exits,
     scan,
+    send: loopSendEnabled(),
     pending: dispatched.pending,
     note: dispatched.note,
     loggedFillIds: dispatched.persist.loggedFillIds,

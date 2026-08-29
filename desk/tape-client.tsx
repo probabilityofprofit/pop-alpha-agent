@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { num } from "@/desk/fmt";
 import type { ChainRow } from "@/lib/desk-types";
 
@@ -63,6 +64,9 @@ export function TapeClient() {
         <button className="ghost" type="button" onClick={() => void score()} disabled={busy}>
           Preview this name
         </button>
+        <Link href="/scan" style={{ color: "var(--dim)", fontSize: 12 }}>
+          Last universe
+        </Link>
         {data?.spot != null ? (
           <span className="mono" style={{ color: "var(--dim)", fontSize: 12 }}>
             {data.symbol} {num(data.spot)}

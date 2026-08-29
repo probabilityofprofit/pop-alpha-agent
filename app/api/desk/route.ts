@@ -1,9 +1,11 @@
+import { deskCapacity } from "@/lib/desk-capacity";
+import type { DeskPayload } from "@/lib/desk-types";
 import { loadLastScan } from "@/lib/last-scan";
-import { EQUITY_FLOOR } from "@/lib/loop-policy";
+import { loadLastTape } from "@/lib/last-tape";
+import { EQUITY_FLOOR, loopSendEnabled } from "@/lib/loop-policy";
 import { loadLoopStatus } from "@/lib/loop-status";
 import { getAccount, getClock, getOrders, getPositions, haltPresent, paperKeysReady } from "@/lib/paper-broker";
 import { readLedger, readTestBook } from "@/lib/read-ledger";
-import type { DeskPayload } from "@/lib/desk-types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -19,6 +21,9 @@ export async function GET() {
     ledger: readLedger(),
     lastScan: loadLastScan(),
     lastLoop: loadLoopStatus(),
+    lastTape: loadLastTape(),
+    capacity: deskCapacity([], [], 0),
+    loopSend: loopSendEnabled(),
     testBook: readTestBook(),
   };
 
@@ -37,6 +42,7 @@ export async function GET() {
     payload.account = account;
     payload.positions = positions;
     payload.orders = orders;
+    payload.capacity = deskCapacity(positions, orders, Number(account.equity));
     payload.halt = payload.halt || Number(account.equity) <= EQUITY_FLOOR;
   } catch (err) {
     payload.error = err instanceof Error ? err.message : "Paper read failed.";

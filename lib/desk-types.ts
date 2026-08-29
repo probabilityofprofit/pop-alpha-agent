@@ -1,6 +1,8 @@
 /** JSON shapes the Alpha Desk serves. Authored 28 Aug 2026. */
 
 import type { PlaceOptionOrder } from "../governor/door";
+import type { MixCounts } from "../governor/mix";
+import type { TapeClassRow } from "../governor/tape";
 import type { Decision } from "../governor/types";
 import type { PaperAccount, PaperClock, PaperOrder, PaperPosition } from "./paper-broker";
 
@@ -25,9 +27,33 @@ export type LastLoop = {
   halt: boolean;
   lastFifteen: boolean;
   opensThisSession: number;
+  send?: boolean;
   skip?: string | null;
-  pending: { kind: string; reason: string; sent?: boolean } | null;
+  pending: { kind: string; reason: string; sent?: boolean; error?: string } | null;
   note: string;
+  thesis?: {
+    skip: boolean;
+    reason?: string;
+    hint?: { underlying?: string; structure?: string; thesis?: string };
+  };
+  exits?: Array<{ underlying: string; reason: string; pnl: number }>;
+};
+
+export type LastTape = {
+  at: string;
+  kept: string[];
+  alreadyOpen: string[];
+  rows: TapeClassRow[];
+  decision?: "propose" | "no_trade";
+  winner?: string;
+  thesis?: { skip: boolean; reason?: string; underlying?: string; structure?: string };
+};
+
+export type DeskCapacity = {
+  bookUsd: number;
+  bookCapUsd: number;
+  mix: MixCounts;
+  names: string[];
 };
 
 export type DeskPayload = {
@@ -40,6 +66,9 @@ export type DeskPayload = {
   ledger: LedgerRow[];
   lastScan: LastScan | null;
   lastLoop: LastLoop | null;
+  lastTape: LastTape | null;
+  capacity: DeskCapacity;
+  loopSend: boolean;
   testBook: string;
   error?: string;
 };
