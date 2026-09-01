@@ -23,8 +23,8 @@ export default function PolicyPage() {
             payload via the paper door. The model never calls either.
           </li>
           <li>Templates: bull/bear call and put verticals, iron condor, iron fly. Unlimited loss is a veto.</li>
-          <li>Size: floor(1% equity / |max loss|). Book cap 10%. Halt at $90k or hackathon/HALT. Five new opens per session. Mix: two bull, two bear, two irons.</li>
-          <li>Tenor 0–21 DTE (0DTE in search). Scan every 2.5 minutes 9:30–10:30 a.m. ET, then every 15 minutes. Join NBBO DAY. Take 50% of max profit; stop 50% of defined risk. Gates use the Friday mark, not expiry.</li>
+          <li>Size: floor(1% equity / |max loss|). Book cap 10%. Halt at $90k or hackathon/HALT. Five new opens per session, stacked on names still open. Mix: four bull, four bear, four irons.</li>
+          <li>Tenor 0–21 DTE (0DTE in search). Scan every 2.5 minutes 9:30–10:30 a.m. ET, then every 15 minutes. Join NBBO DAY. Take/stop 50% of position max profit / defined risk (per-lot × qty). No stop for 3 minutes after fill. No same-name re-entry after a stop. Gates use the Friday mark, not expiry.</li>
           <li>
             Official P&amp;L: new $100k paper, total equity (not cash). Window Mon 31 9:30 a.m. ET →
             Fri 4 9:30 a.m. ET. Thursday 3 Sep EOD (Sep 3 assignment in) plus Friday 9:30 a.m. ET

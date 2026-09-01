@@ -1,9 +1,10 @@
-/** 2/2/2 mix: two bull verticals, two bear verticals, two irons. Authored 28 Aug 2026. */
+/** 4/4/4 mix: four bull verticals, four bear verticals, four irons. Authored 28 Aug 2026. */
 
 import type { Template } from "./types";
 
-export const MIX_CAP = 2;
-export const MIX_CAP_REASON = "Mix cap: two bull, two bear, two irons.";
+/** Per-bucket ceiling so two cash sessions of five opens can sit together. 10% book is the money cap. */
+export const MIX_CAP = 4;
+export const MIX_CAP_REASON = "Mix cap: four bull, four bear, four irons.";
 
 export type MixBucket = "bull" | "bear" | "iron";
 export type MixCounts = Record<MixBucket, number>;

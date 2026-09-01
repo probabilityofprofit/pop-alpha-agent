@@ -105,9 +105,17 @@ export function LoopClient() {
         </header>
         <div className="panel-body">
           <div className="kv">
-            <Tip tip="New filled pop-alpha opens this cash session. Cap is 5.">Session opens</Tip>
+            <Tip tip="Filled pop-alpha opens this cash session. Close fills (pop-alpha-x-) do not count. Cap is 5.">
+              Session opens
+            </Tip>
             <span className="mono">
               {loop?.opensThisSession ?? 0} / {SESSION_OPEN_CAP}
+            </span>
+            <Tip tip="Names stopped out today. The loop will not re-open them this cash session.">
+              Stopped today
+            </Tip>
+            <span className="mono">
+              {(loop?.stoppedThisSession ?? []).length ? loop!.stoppedThisSession!.join(" ") : "—"}
             </span>
             <Tip tip="Open defined-risk |max loss| × qty vs 10% of equity.">Book</Tip>
             <span className="mono">
@@ -117,15 +125,15 @@ export function LoopClient() {
               Equity floor
             </Tip>
             <span className="mono">{money(EQUITY_FLOOR)}</span>
-            <Tip tip="Open + working DAY bull verticals. Cap 2.">Mix bull</Tip>
+            <Tip tip="Open + working DAY bull verticals. Cap follows MIX_CAP.">Mix bull</Tip>
             <span className="mono">
               {mix.bull} / {MIX_CAP}
             </span>
-            <Tip tip="Open + working DAY bear verticals. Cap 2.">Mix bear</Tip>
+            <Tip tip="Open + working DAY bear verticals. Cap follows MIX_CAP.">Mix bear</Tip>
             <span className="mono">
               {mix.bear} / {MIX_CAP}
             </span>
-            <Tip tip="Open + working DAY irons. Cap 2.">Mix iron</Tip>
+            <Tip tip="Open + working DAY irons. Cap follows MIX_CAP.">Mix iron</Tip>
             <span className="mono">
               {mix.iron} / {MIX_CAP}
             </span>

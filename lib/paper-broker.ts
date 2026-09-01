@@ -48,6 +48,7 @@ export type PaperOrder = {
   limit_price: string | null;
   filled_avg_price: string | null;
   submitted_at: string;
+  filled_at?: string | null;
   symbol: string;
   legs: Array<{ symbol: string; side: string; ratio_qty?: string }> | null;
 };

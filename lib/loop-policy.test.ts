@@ -12,9 +12,13 @@ import {
   scanIntervalMs,
   cancelPayload,
   clearCloseAttempts,
+  countSessionOpens,
   fillsToLog,
+  isGovernorOpenId,
   loopSendEnabled,
+  packageOpenedAt,
   recordCloseFailure,
+  sessionStoppedNames,
   skippedScanReason,
   uniqueIds,
   workingDayOrders,
@@ -153,5 +157,77 @@ describe("cancel payload", () => {
   });
   it("uniqueIds drops empties and repeats", () => {
     assert.deepEqual(uniqueIds(["a", "a", "", "b"], ["b"]), ["a"]);
+  });
+});
+
+describe("session opens vs closes", () => {
+  it("counts filled opens and ignores close client ids", () => {
+    const day = "2026-08-31";
+    const n = countSessionOpens(
+      [
+        {
+          order_class: "mleg",
+          status: "filled",
+          filled_qty: "9",
+          client_order_id: "pop-alpha-2026-08-31T133420444Z",
+          submitted_at: "2026-08-31T13:34:33Z",
+        },
+        {
+          order_class: "mleg",
+          status: "filled",
+          filled_qty: "9",
+          client_order_id: "pop-alpha-x-2026-08-31T133533082Z",
+          submitted_at: "2026-08-31T13:35:34Z",
+        },
+        {
+          order_class: "mleg",
+          status: "canceled",
+          filled_qty: "0",
+          client_order_id: "pop-alpha-2026-08-31T132959982Z",
+          submitted_at: "2026-08-31T13:30:19Z",
+        },
+      ],
+      day,
+    );
+    assert.equal(n, 1);
+    assert.equal(isGovernorOpenId("pop-alpha-2026-08-31T133420444Z"), true);
+    assert.equal(isGovernorOpenId("pop-alpha-x-2026-08-31T133533082Z"), false);
+  });
+  it("collects names stopped this session from exit rows", () => {
+    assert.deepEqual(
+      sessionStoppedNames(
+        [
+          { ts: "2026-08-31T13:35:33.082Z", kind: "exit", underlying: "SNXX", reason: "Stop 50% of defined risk." },
+          { ts: "2026-08-31T13:40:44.413Z", kind: "exit", underlying: "SNXX", reason: "Stop 50% of defined risk." },
+          { ts: "2026-08-31T13:50:00.000Z", kind: "exit", underlying: "SPY", reason: "Take 50% of max profit." },
+          { ts: "2026-08-30T13:35:33.082Z", kind: "exit", underlying: "NVDA", reason: "Stop 50% of defined risk." },
+        ],
+        "2026-08-31",
+      ),
+      ["SNXX"],
+    );
+  });
+  it("uses the open fill time for hold", () => {
+    const opened = packageOpenedAt(
+      ["SNXX260904C00013500", "SNXX260904C00014500"],
+      [
+        {
+          client_order_id: "pop-alpha-2026-08-31T133734477Z",
+          status: "filled",
+          filled_qty: "12",
+          filled_at: "2026-08-31T13:40:41Z",
+          submitted_at: "2026-08-31T13:37:43Z",
+          legs: [{ symbol: "SNXX260904C00013500" }, { symbol: "SNXX260904C00014500" }],
+        },
+        {
+          client_order_id: "pop-alpha-x-2026-08-31T134044413Z",
+          status: "filled",
+          filled_qty: "12",
+          filled_at: "2026-08-31T13:42:12Z",
+          legs: [{ symbol: "SNXX260904C00013500" }, { symbol: "SNXX260904C00014500" }],
+        },
+      ],
+    );
+    assert.equal(opened?.toISOString(), "2026-08-31T13:40:41.000Z");
   });
 });

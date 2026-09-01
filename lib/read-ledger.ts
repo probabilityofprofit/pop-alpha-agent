@@ -3,19 +3,24 @@ import { LEDGER_PATH, TEST_BOOK_PATH } from "./paths";
 import type { LedgerRow } from "./desk-types";
 
 export function readLedger(limit = 80): LedgerRow[] {
+  const rows = readLedgerAll();
+  return rows.slice(-limit).reverse();
+}
+
+export function readLedgerAll(): LedgerRow[] {
   try {
     const text = readFileSync(LEDGER_PATH, "utf8");
-    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-    const slice = lines.slice(-limit);
     const rows: LedgerRow[] = [];
-    for (const line of slice) {
+    for (const line of text.split("\n")) {
+      const t = line.trim();
+      if (!t) continue;
       try {
-        rows.push(JSON.parse(line) as LedgerRow);
+        rows.push(JSON.parse(t) as LedgerRow);
       } catch {
         /* skip a broken line */
       }
     }
-    return rows.reverse();
+    return rows;
   } catch {
     return [];
   }

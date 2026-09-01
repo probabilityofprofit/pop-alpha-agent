@@ -50,6 +50,10 @@ export function ScanClient() {
               <span className="mono">{tape.kept.join(" ") || "—"}</span>
               <Tip tip="Dropped because a package is already open in that name.">Already open</Tip>
               <span className="mono">{tape.alreadyOpen.join(" ") || "—"}</span>
+              <Tip tip="Stopped out earlier this cash session. The loop will not re-open them today.">
+                Stopped today
+              </Tip>
+              <span className="mono">{(tape.stoppedThisSession ?? []).join(" ") || "—"}</span>
               <Tip tip="Governor propose winner, or no_trade.">Winner</Tip>
               <span className="mono">
                 {tape.decision === "propose" ? tape.winner ?? "propose" : tape.decision ?? "—"}

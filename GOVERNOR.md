@@ -4,7 +4,7 @@ Authored 28 Aug 2026 during the Alpaca Options Alpha Agents window. Paper-only. 
 
 **Test book (Fri 28 Aug):** existing paper account ending `X17N`. MCP mleg tests only. Does not score.
 
-**Official book:** new Alpaca paper account, $100,000, options on. First order no earlier than **Mon 31 Aug 2026 9:30 a.m. ET**. Last four: `____`. Do not use the Friday test book (`X17N`) for this number.
+**Official book:** new Alpaca paper account, $100,000, options on. First order no earlier than **Mon 31 Aug 2026 9:30 a.m. ET**. Last four: `CTM7`. Do not use the Friday test book (`X17N`) or the earlier Monday books (`YBLH`) for this number.
 
 Alpaca judges **total account equity**, not cash. Official window: **Mon 31 Aug 2026 9:30 a.m. ET → Fri 4 Sep 2026 9:30 a.m. ET**. They look at **Thursday 3 Sep EOD equity** (Sep 3 expiries’ exercise/assignment included) and take a **Friday 4 Sep 9:30 a.m. ET** equity snapshot. Dollar P&L = that equity − $100,000. Photograph Friday 9:30, **then** flatten — do not flatten before the snapshot. P&L is one judging factor; workflow (autonomy, robustness) also counts.
 
@@ -83,7 +83,7 @@ Rank by manage-by 50% cell, then Friday POP, then Friday mean P&L, then fewer DT
 
 Qty = floor(1% of equity / |maxLoss|). Strip model qty. Skip if qty < 1.
 
-Open defined-risk |maxLoss|×qty ≤ 10% of equity. One package per name. At most two bull verticals, two bear verticals, two irons (loop enforces this before send). A working open counts as that name’s package. Unattended qty is also capped at 12 lots (`LOOP_MAX_QTY`, default 12) so a units bug cannot send a 45-lot.
+Open defined-risk |maxLoss|×qty ≤ 10% of equity. One package per name. At most four bull verticals, four bear verticals, four irons (loop enforces this before send) so a second cash session of five opens can sit on top of the first. A working open counts as that name’s package. Unattended qty is also capped at 12 lots (`LOOP_MAX_QTY`, default 12) so a units bug cannot send a 45-lot.
 
 DAY only. Join net NBBO: debit at net ask, credit at net bid. Do not cross. Closes: buying back a credit uses net ask; selling a debit uses net bid.
 
@@ -95,7 +95,9 @@ Exit poll every 60 seconds while anything is open: marks only, no Monte Carlo.
 
 ## 7. Closer
 
-Take profit at 50% of max profit. Stop at 50% of |maxLoss| (credits) or 50% of debit paid (debits). Mark = package net mid vs filled entry.
+Take profit at 50% of **position** max profit (per-lot maxProfit × qty). Stop at 50% of **position** defined risk (per-lot maxLoss × qty). Mark = package net mid vs filled entry. Do not stop in the first 3 minutes after the open fill — joining NBBO then marking mid is not a 50% loss. Take-profit may still fire. After a stop, do not open that name again this cash session; cancel a working DAY that is a re-entry.
+
+Session cap is five **new opens** (`pop-alpha-<iso>` fills). Close ids (`pop-alpha-x-…`) do not count.
 
 No new official risk after Thursday 3 Sep last 15 minutes, and none on Friday 4 Sep. Thursday EOD marks plus Sep 3 assignment are what Alpaca described as the scored book. Leave packages on through the **Friday 4 Sep 9:30 a.m. ET** snapshot, then flatten. Do not flatten Thursday night or Friday before 9:30 a.m. ET.
 
@@ -128,4 +130,4 @@ Friday 4 Sep 9:30 a.m. ET: `CONTEST.md` / `CONTEST.json` from MCP account, histo
 
 Allow: bull/bear call and put verticals, iron condor, iron butterfly, 0–21 DTE including 0DTE, explicit no-trade, scan with modelSkip.
 
-Deny: naked shorts, unlimited-loss straddles/strangles/ratios, stock, crypto, single-leg, calendars, diagonals, off-tape names, second package in a name, live trading, market mleg, model qty/limit/OCC, invented P&L, holding a working DAY into the next scan or into the last 15 minutes of RTH, a send path that is not the MCP-shaped paper door.
+Deny: naked shorts, unlimited-loss straddles/strangles/ratios, stock, crypto, single-leg, calendars, diagonals, off-tape names, second package in a name, re-open after a stop the same session, live trading, market mleg, model qty/limit/OCC, invented P&L, holding a working DAY into the next scan or into the last 15 minutes of RTH, a send path that is not the MCP-shaped paper door.

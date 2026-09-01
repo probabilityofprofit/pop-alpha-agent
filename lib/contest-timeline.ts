@@ -79,7 +79,7 @@ export const CONTEST_EVENTS: ContestEvent[] = [
     at: et930("2026-09-01"),
     when: "Tue 1 – Wed 2 Sep",
     title: "Trade the open, mark the book",
-    body: "Each cash session: up to five new opens, mix two bull / two bear / two irons. Fast tape 9:30–10:30 a.m. ET, then every 15 minutes. Last 15 minutes of RTH: no new risk.",
+    body: "Each cash session: up to five new opens on top of names still open. Mix four bull / four bear / four irons; 10% book is the money cap. Fast tape 9:30–10:30 a.m. ET, then every 15 minutes. Last 15 minutes of RTH: no new risk.",
     tag: "Official",
   },
   {

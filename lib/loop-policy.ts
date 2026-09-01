@@ -1,6 +1,8 @@
 /** Pure loop decisions. Authored 28 Aug 2026. No broker I/O. */
 
-/** Official week: 5 new opens / session so 1% tickets can fill a 10% book. */
+import { ymd } from "../governor/calendar";
+
+/** Official week: 5 new opens / cash session. Mix 4/4/4 lets a second day stack on the first; 10% book is the money cap. */
 export const SESSION_OPEN_CAP = 5;
 /** Defined-risk |maxLoss|×qty of open packages, as a fraction of equity. */
 export const BOOK_CAP = 0.1;
@@ -130,3 +132,68 @@ export function uniqueIds(ids: string[], already: Iterable<string>): string[] {
   }
   return out;
 }
+
+/** Opens use `pop-alpha-<iso>`. Closes use `pop-alpha-x-<iso>`. */
+export function isGovernorOpenId(clientOrderId?: string): boolean {
+  if (!clientOrderId?.startsWith("pop-alpha-")) return false;
+  return !clientOrderId.startsWith("pop-alpha-x");
+}
+
+export type SessionOpenOrder = {
+  order_class?: string;
+  filled_qty?: string;
+  status?: string;
+  client_order_id?: string;
+  submitted_at?: string;
+};
+
+export function countSessionOpens(orders: SessionOpenOrder[], sessionYmd: string): number {
+  let n = 0;
+  for (const o of orders) {
+    if (o.order_class !== "mleg") continue;
+    const filled = Number(o.filled_qty) > 0 || o.status === "filled";
+    if (!filled) continue;
+    if (!isGovernorOpenId(o.client_order_id)) continue;
+    const day = o.submitted_at ? ymd(new Date(o.submitted_at)) : "";
+    if (day === sessionYmd) n += 1;
+  }
+  return n;
+}
+
+export function sessionStoppedNames(
+  rows: Array<{ ts?: string; kind?: string; underlying?: string; reason?: string }>,
+  sessionYmd: string,
+): string[] {
+  const names = new Set<string>();
+  for (const row of rows) {
+    if (row.kind !== "exit" || !row.underlying || !row.ts) continue;
+    if (ymd(new Date(row.ts)) !== sessionYmd) continue;
+    if (typeof row.reason === "string" && row.reason.startsWith("Stop ")) names.add(row.underlying);
+  }
+  return [...names];
+}
+
+export type OpenFillOrder = {
+  client_order_id?: string;
+  status?: string;
+  filled_qty?: string;
+  filled_at?: string | null;
+  submitted_at?: string;
+  legs?: Array<{ symbol: string }> | null;
+};
+
+export function packageOpenedAt(occs: Iterable<string>, orders: OpenFillOrder[]): Date | null {
+  const want = new Set(occs);
+  let latest = 0;
+  for (const o of orders) {
+    if (!isGovernorOpenId(o.client_order_id)) continue;
+    if (!(Number(o.filled_qty) > 0 || o.status === "filled")) continue;
+    if (!(o.legs ?? []).some((leg) => want.has(leg.symbol))) continue;
+    const raw = o.filled_at || o.submitted_at;
+    const t = raw ? Date.parse(raw) : 0;
+    if (t > latest) latest = t;
+  }
+  return latest ? new Date(latest) : null;
+}
+
+export const STOPPED_REENTRY_CANCEL = "Stopped this session. Cancel re-entry.";

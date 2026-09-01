@@ -85,6 +85,23 @@ describe("tape", () => {
     assert.equal(classified.rows.find((r) => r.symbol === "CCC")?.reason, "Last under $10.");
     assert.equal(classified.rows.find((r) => r.symbol === "SPY")?.reason, "Index backstop.");
   });
+  it("drops a name that was stopped this session", () => {
+    assert.equal(
+      dropReason({ symbol: "SNXX", last: 13.7 }, new Set(), new Set(["SNXX"])),
+      "Stopped this session.",
+    );
+    const classified = classifyTape(
+      [
+        { symbol: "SNXX", last: 13.7, optionVolume: 9000 },
+        { symbol: "SPY", last: 400, optionVolume: 10 },
+      ],
+      new Set(),
+      15,
+      new Set(["SNXX"]),
+    );
+    assert.equal(classified.rows.find((r) => r.symbol === "SNXX")?.reason, "Stopped this session.");
+    assert.ok(!classified.kept.includes("SNXX"));
+  });
 });
 
 describe("paper", () => {

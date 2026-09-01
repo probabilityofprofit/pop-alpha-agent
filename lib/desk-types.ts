@@ -27,6 +27,7 @@ export type LastLoop = {
   halt: boolean;
   lastFifteen: boolean;
   opensThisSession: number;
+  stoppedThisSession?: string[];
   send?: boolean;
   skip?: string | null;
   pending: { kind: string; reason: string; sent?: boolean; error?: string } | null;
@@ -43,6 +44,7 @@ export type LastTape = {
   at: string;
   kept: string[];
   alreadyOpen: string[];
+  stoppedThisSession?: string[];
   rows: TapeClassRow[];
   decision?: "propose" | "no_trade";
   winner?: string;

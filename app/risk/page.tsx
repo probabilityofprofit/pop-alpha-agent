@@ -1,5 +1,6 @@
 import { MAX_DTE, MIN_DTE, WINDOW_END } from "@/governor/calendar";
 import { MIX_CAP } from "@/governor/mix";
+import { STOP_HOLD_MS } from "@/lib/closer";
 import {
   BOOK_CAP,
   DEFAULT_MAX_QTY,
@@ -33,12 +34,12 @@ const ROWS: Array<{ label: string; value: string; note?: string }> = [
   {
     label: "Session opens",
     value: `${SESSION_OPEN_CAP} new fills / cash session`,
-    note: "One new open per scan; one working DAY at a time.",
+    note: "Filled governor opens this session. Close fills do not count.",
   },
   {
     label: "Mix",
     value: `${MIX_CAP} bull / ${MIX_CAP} bear / ${MIX_CAP} iron`,
-    note: "Open books and working DAY mlegs count.",
+    note: "Open books and working DAY mlegs count. Five new fills per day can stack on names still open.",
   },
   {
     label: "Tenor",
@@ -52,8 +53,8 @@ const ROWS: Array<{ label: string; value: string; note?: string }> = [
   },
   {
     label: "Take / stop",
-    value: "50% of max profit / 50% of defined risk",
-    note: "Mark poll every 60 seconds while anything is open.",
+    value: "50% of position max profit / 50% of position risk",
+    note: `Per-lot × qty. No stop for ${STOP_HOLD_MS / 60_000} min after fill. No same-name re-entry after a stop.`,
   },
   {
     label: "Hold-map gates",
@@ -114,6 +115,7 @@ export default function RiskPage() {
         </table>
         <p style={{ marginTop: 14, color: "var(--faint)", fontSize: 12 }}>
           Source of truth: <span className="mono">GOVERNOR.md</span>,{" "}
+          <span className="mono">lib/closer.ts</span>,{" "}
           <span className="mono">lib/loop-policy.ts</span>, <span className="mono">governor/mix.ts</span>,{" "}
           <span className="mono">governor/pick.ts</span>.
         </p>

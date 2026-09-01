@@ -5,7 +5,7 @@ import { ALL_TEMPLATES } from "./strikes";
 import { scanExpiry } from "./cycle";
 import { DEMO_QUOTES, DEMO_SPOT } from "./demo-chain";
 
-describe("mix 2/2/2", () => {
+describe("mix 4/4/4", () => {
   it("buckets verticals and irons", () => {
     assert.equal(mixBucket("bull_put"), "bull");
     assert.equal(mixBucket("bull_call"), "bull");
@@ -15,20 +15,28 @@ describe("mix 2/2/2", () => {
     assert.equal(mixBucket("iron_fly"), "iron");
   });
 
-  it("blocks a third bull", () => {
-    const counts = mixCounts(["bull_put", "bull_call"]);
-    assert.equal(MIX_CAP, 2);
-    assert.equal(mixAllows(counts, "bull_put"), false);
-    assert.equal(mixAllows(counts, "bear_call"), true);
-    assert.equal(mixAllows(counts, "iron_condor"), true);
+  it("allows a third bull and blocks a fifth", () => {
+    const three = mixCounts(["bull_put", "bull_call", "bull_put"]);
+    assert.equal(MIX_CAP, 4);
+    assert.equal(mixAllows(three, "bull_put"), true);
+    const four = mixCounts(["bull_put", "bull_call", "bull_put", "bull_call"]);
+    assert.equal(mixAllows(four, "bull_put"), false);
+    assert.equal(mixAllows(four, "bear_call"), true);
+    assert.equal(mixAllows(four, "iron_condor"), true);
   });
 
   it("clears all templates when every bucket is full", () => {
     const counts = mixCounts([
       "bull_put",
       "bull_call",
+      "bull_put",
+      "bull_call",
       "bear_put",
       "bear_call",
+      "bear_put",
+      "bear_call",
+      "iron_condor",
+      "iron_fly",
       "iron_condor",
       "iron_fly",
     ]);

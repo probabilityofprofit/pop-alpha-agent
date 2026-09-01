@@ -12,7 +12,7 @@ import type { Decision, Template } from "../governor/types";
 import { mcpPayload, scanExpiry } from "../governor/cycle";
 import { ALL_TEMPLATES } from "../governor/strikes";
 import { MIX_CAP_REASON, allowedTemplates, mixAllows, mixCounts } from "../governor/mix";
-import { markBook, shouldExit } from "./closer";
+import { markBook, applyStopHold, heldMs, shouldExit } from "./closer";
 import type { LastScan } from "./desk-types";
 import { dispatchPending, type DoorPending, type DoorPersist } from "./door-dispatch";
 import { saveLastScan } from "./last-scan";
@@ -23,15 +23,21 @@ import {
   LAST_FIFTEEN_CANCEL,
   SCAN_END_CANCEL,
   SESSION_OPEN_CAP,
+  STOPPED_REENTRY_CANCEL,
   cancelPayload,
   capQty,
+  countSessionOpens,
+  isGovernorOpenId,
   loopSendEnabled,
   fillsToLog,
+  packageOpenedAt,
   scanIntervalMs,
+  sessionStoppedNames,
   skippedScanReason,
   workingDayOrders,
 } from "./loop-policy";
 import { booksFromPositions, openUnderlyings, templateFromWorkingLegs, type OpenBook } from "./packages-from-positions";
+import { parseOcc } from "./occ";
 import { writeHalt } from "./paper-door";
 import {
   getAccount,
@@ -49,6 +55,7 @@ import {
 } from "./paper-broker";
 import { LEDGER_PATH, LOOP_STATUS_PATH } from "./paths";
 import { expirationsInSnapshots, quotesFromSnapshots } from "./quotes-from-chain";
+import { readLedgerAll } from "./read-ledger";
 import { fetchThesis, type ThesisResult } from "./thesis";
 
 export const EXIT_EVERY_MS = 60 * 1000;
@@ -74,6 +81,7 @@ export type LoopTick = {
   loggedFillIds: string[];
   loggedCancelIds: string[];
   closeAttempts: Record<string, number>;
+  stoppedThisSession: string[];
 };
 
 function cycleId(asOf: Date): string {
@@ -101,17 +109,22 @@ function saveStatus(tick: LoopTick): void {
   writeFileSync(LOOP_STATUS_PATH, `${JSON.stringify(tick, null, 2)}\n`, "utf8");
 }
 
-function sessionOpens(orders: PaperOrder[], sessionYmd: string): number {
-  let n = 0;
-  for (const o of orders) {
-    if (o.order_class !== "mleg") continue;
-    const filled = Number(o.filled_qty) > 0 || o.status === "filled";
-    if (!filled) continue;
-    if (!o.client_order_id?.startsWith("pop-alpha-")) continue;
-    const day = o.submitted_at ? ymd(new Date(o.submitted_at)) : "";
-    if (day === sessionYmd) n += 1;
+function orderRoot(order: PaperOrder): string | null {
+  for (const leg of order.legs ?? []) {
+    const parsed = parseOcc(leg.symbol);
+    if (parsed) return parsed.root;
   }
-  return n;
+  return null;
+}
+
+function justOpenedOccs(fills: Array<{ id: string; client_order_id?: string }>, orders: PaperOrder[]): Set<string> {
+  const byId = new Map(orders.map((o) => [o.id, o]));
+  const occs = new Set<string>();
+  for (const fill of fills) {
+    if (!isGovernorOpenId(fill.client_order_id)) continue;
+    for (const leg of byId.get(fill.id)?.legs ?? []) occs.add(leg.symbol);
+  }
+  return occs;
 }
 
 function bookTemplates(books: OpenBook[], openOrders: PaperOrder[]): Template[] {
@@ -165,7 +178,10 @@ function logCycle(
   );
 }
 
-async function buildTape(already: Set<string>): Promise<{ kept: string[]; rows: TapeClassRow[] }> {
+async function buildTape(
+  already: Set<string>,
+  stopped: ReadonlySet<string> = new Set(),
+): Promise<{ kept: string[]; rows: TapeClassRow[] }> {
   const [actives, movers] = await Promise.all([getMostActives(), getStockMovers()]);
   const symbols = [...actives.map((a) => a.symbol), ...movers.map((m) => m.symbol), "SPY", "QQQ"];
   const unique = [...new Set(symbols.map((s) => s.toUpperCase()))];
@@ -177,7 +193,7 @@ async function buildTape(already: Set<string>): Promise<{ kept: string[]; rows: 
     shortOi: 500,
   }));
   const cap = Math.max(1, Number(process.env.LOOP_MAX_NAMES) || 15);
-  return classifyTape(names, already, cap);
+  return classifyTape(names, already, cap, stopped);
 }
 
 async function scoreName(input: {
@@ -230,7 +246,11 @@ async function scoreName(input: {
   return best;
 }
 
-async function runExits(asOf: Date): Promise<{
+async function runExits(
+  asOf: Date,
+  orders: PaperOrder[],
+  freshOpenOccs: Set<string>,
+): Promise<{
   exits: LoopTick["exits"];
   pending: DoorPending | null;
   books: OpenBook[];
@@ -259,7 +279,13 @@ async function runExits(asOf: Date): Promise<{
   }
 
   for (const book of books) {
-    const mark = markBook(book.pkg, book.qty, book.entryNet);
+    const openedAt = book.pkg.legs.some((leg) => freshOpenOccs.has(leg.occ))
+      ? asOf
+      : packageOpenedAt(
+          book.pkg.legs.map((leg) => leg.occ),
+          orders,
+        );
+    const mark = applyStopHold(markBook(book.pkg, book.qty, book.entryNet), heldMs(asOf, openedAt));
     if (mark.take || mark.stop) {
       appendLedger(LEDGER_PATH, {
         ts: asOf.toISOString(),
@@ -298,6 +324,7 @@ export async function runScanCycle(
   asOf: Date,
   books: OpenBook[],
   openOrders: PaperOrder[],
+  stopped: ReadonlySet<string> = new Set(),
 ): Promise<{
   scan: LastScan;
   thesis: ThesisResult;
@@ -308,7 +335,7 @@ export async function runScanCycle(
   const equity = Number(account.equity);
   const halt = haltPresent() || equity <= EQUITY_FLOOR;
   const already = openUnderlyings(books);
-  const tape = await buildTape(already);
+  const tape = await buildTape(already, stopped);
   const thesis = await fetchThesis(tape.kept);
 
   const finish = (decision: Decision, pending: DoorPending | null, bestSpot = 0) => {
@@ -317,6 +344,7 @@ export async function runScanCycle(
       at: asOf.toISOString(),
       kept: tape.kept,
       alreadyOpen: [...already],
+      stoppedThisSession: [...stopped],
       rows: tape.rows,
       decision: decision.action,
       winner: decision.action === "propose" ? decision.package.underlying : undefined,
@@ -366,7 +394,7 @@ export async function runScanCycle(
   let bestSpot = 0;
   for (const symbol of ordered) {
     if (Date.now() > deadline) break;
-    if (already.has(symbol)) continue;
+    if (already.has(symbol) || stopped.has(symbol)) continue;
     const preferred = !thesis.skip && thesis.hint.underlying === symbol ? thesis.preferred : undefined;
     const decision = await scoreName({
       symbol,
@@ -416,9 +444,11 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
   }
   const halt = haltPresent() || equity <= EQUITY_FLOOR;
   const lastFifteen = lastFifteenMinutesPdt(asOf);
-  const opensThisSession = sessionOpens(orders, sessionYmd);
+  const opensThisSession = countSessionOpens(orders, sessionYmd);
+  const newFills = fillsToLog(orders, persist.loggedFillIds);
+  const freshOpenOccs = justOpenedOccs(newFills, orders);
 
-  for (const fill of fillsToLog(orders, persist.loggedFillIds)) {
+  for (const fill of newFills) {
     appendLedger(LEDGER_PATH, {
       ts: asOf.toISOString(),
       kind: "fill",
@@ -431,10 +461,32 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
     persist.loggedFillIds.push(fill.id);
   }
 
-  const exitRun = await runExits(asOf);
+  const exitRun = await runExits(asOf, orders, freshOpenOccs);
+  const stoppedThisSession = [
+    ...new Set([
+      ...sessionStoppedNames(readLedgerAll(), sessionYmd),
+      ...exitRun.exits.filter((e) => e.reason.startsWith("Stop ")).map((e) => e.underlying),
+    ]),
+  ];
+  const stopped = new Set(stoppedThisSession);
   let thesis: ThesisResult = { skip: true, reason: "modelSkip: scan not due." };
   let scan: LastScan | undefined;
   let pending = exitRun.pending;
+
+  if (!pending) {
+    const reentry = workingDayOrders(exitRun.openOrders).filter((o) => {
+      const root = orderRoot(o);
+      return root != null && stopped.has(root);
+    });
+    if (reentry.length) {
+      pending = {
+        kind: "cancel",
+        reason: STOPPED_REENTRY_CANCEL,
+        orderIds: reentry.map((o) => o.id),
+        mcp: cancelPayload(reentry.map((o) => o.id)),
+      };
+    }
+  }
 
   const scanDue =
     opts.forceScan ||
@@ -467,7 +519,7 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
       };
       logCycle(asOf, id, "final", { action: "no_trade", reason: SCAN_END_CANCEL }, thesis);
     } else {
-      const scanned = await runScanCycle(asOf, exitRun.books, exitRun.openOrders);
+      const scanned = await runScanCycle(asOf, exitRun.books, exitRun.openOrders, stopped);
       thesis = scanned.thesis;
       scan = scanned.scan;
       pending = scanned.pending;
@@ -494,6 +546,7 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
     loggedFillIds: dispatched.persist.loggedFillIds,
     loggedCancelIds: dispatched.persist.loggedCancelIds,
     closeAttempts: dispatched.persist.closeAttempts,
+    stoppedThisSession,
   };
   saveStatus(tickRow);
   return tickRow;

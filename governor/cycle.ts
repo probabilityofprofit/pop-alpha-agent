@@ -21,7 +21,7 @@ export type ScanInput = {
   cycleId: string;
   ledgerPath?: string;
   preferred?: Template[];
-  /** If set, only these templates may win (2/2/2 mix). */
+  /** If set, only these templates may win (mix cap). */
   allowedTemplates?: Template[];
 };
 
