@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { ageLabel, ageMs, money, signedMoney } from "@/desk/fmt";
 import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
-import { BOOK_CAP, EQUITY_FLOOR, SESSION_OPEN_CAP } from "@/lib/loop-policy";
-import { MIX_CAP } from "@/governor/mix";
+import { bookCap, equityFloor } from "@/lib/loop-policy";
+import { mixCap } from "@/governor/mix";
 
 function pulse(at?: string): "live" | "late" | "stale" | "idle" {
   const ms = ageMs(at);
@@ -36,7 +36,11 @@ export function LoopClient() {
   const equity = Number(desk?.account?.equity);
   const mix = cap?.mix ?? { bull: 0, bear: 0, iron: 0 };
   const bookUsd = cap?.bookUsd ?? 0;
-  const bookCap = cap?.bookCapUsd || (Number.isFinite(equity) ? BOOK_CAP * equity : 0);
+  const now = new Date();
+  const liveBookFrac = bookCap(now);
+  const liveMixCap = mixCap(now);
+  const liveFloor = equityFloor(now);
+  const bookCapUsd = cap?.bookCapUsd || (Number.isFinite(equity) ? liveBookFrac * equity : 0);
 
   return (
     <div className="stack">
@@ -71,7 +75,9 @@ export function LoopClient() {
             <span className="mono">{loop?.sessionYmd ?? "—"}</span>
             <Tip tip="Alpaca get_clock.is_open — new risk only when cash is open.">Clock</Tip>
             <span>{loop ? (loop.isOpen ? "Cash open" : "Cash closed") : desk?.clock?.is_open ? "Cash open" : "—"}</span>
-            <Tip tip="HALT file or equity ≤ $90k. No new risk; flatten still allowed.">Halt</Tip>
+            <Tip tip="HALT file or equity at/under the live floor ($90k Tue, $85k from Wed). No new risk; flatten still allowed.">
+              Halt
+            </Tip>
             <span className={desk?.halt || loop?.halt ? "down" : "up"}>
               {desk?.halt || loop?.halt ? "HALT" : "Clear"}
             </span>
@@ -99,43 +105,41 @@ export function LoopClient() {
 
       <article className="panel">
         <header className="panel-head">
-          <Tip tip="Live use of the Risk gates — book, mix, and session opens." below>
+          <Tip tip="Live use of the Risk gates — book and mix. No daily open count." below>
             Capacity
           </Tip>
         </header>
         <div className="panel-body">
           <div className="kv">
-            <Tip tip="Filled pop-alpha opens this cash session. Close fills (pop-alpha-x-) do not count. Cap is 5.">
-              Session opens
+            <Tip tip="Filled pop-alpha opens this cash session (counter only). Close fills do not count.">
+              Opens today
             </Tip>
-            <span className="mono">
-              {loop?.opensThisSession ?? 0} / {SESSION_OPEN_CAP}
-            </span>
+            <span className="mono">{loop?.opensThisSession ?? 0}</span>
             <Tip tip="Names stopped out today. The loop will not re-open them this cash session.">
               Stopped today
             </Tip>
             <span className="mono">
               {(loop?.stoppedThisSession ?? []).length ? loop!.stoppedThisSession!.join(" ") : "—"}
             </span>
-            <Tip tip="Open defined-risk |max loss| × qty vs 10% of equity.">Book</Tip>
+            <Tip tip="Open defined-risk |max loss| × qty vs live book % (10% Tue, 15% from Wed).">Book</Tip>
             <span className="mono">
-              {money(bookUsd)} / {money(bookCap)} ({Math.round(BOOK_CAP * 100)}%)
+              {money(bookUsd)} / {money(bookCapUsd)} ({Math.round(liveBookFrac * 100)}%)
             </span>
-            <Tip tip="New risk stops at this equity. Same hole as the 10% book on a $100k start.">
+            <Tip tip="New risk stops at this equity. Paired with the live book hole ($90k Tue, $85k from Wed).">
               Equity floor
             </Tip>
-            <span className="mono">{money(EQUITY_FLOOR)}</span>
-            <Tip tip="Open + working DAY bull verticals. Cap follows MIX_CAP.">Mix bull</Tip>
+            <span className="mono">{money(liveFloor)}</span>
+            <Tip tip="Open + working DAY bull verticals. Cap 4 Tue / 5 from Wed.">Mix bull</Tip>
             <span className="mono">
-              {mix.bull} / {MIX_CAP}
+              {mix.bull} / {liveMixCap}
             </span>
-            <Tip tip="Open + working DAY bear verticals. Cap follows MIX_CAP.">Mix bear</Tip>
+            <Tip tip="Open + working DAY bear verticals. Cap 4 Tue / 5 from Wed.">Mix bear</Tip>
             <span className="mono">
-              {mix.bear} / {MIX_CAP}
+              {mix.bear} / {liveMixCap}
             </span>
-            <Tip tip="Open + working DAY irons. Cap follows MIX_CAP.">Mix iron</Tip>
+            <Tip tip="Open + working DAY irons. Cap 4 Tue / 5 from Wed.">Mix iron</Tip>
             <span className="mono">
-              {mix.iron} / {MIX_CAP}
+              {mix.iron} / {liveMixCap}
             </span>
             <Tip tip="Underlyings with an open package. Second package in a name is denied.">
               Open names

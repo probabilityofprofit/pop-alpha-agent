@@ -5,6 +5,7 @@ import { BlotterTable } from "@/desk/blotter-table";
 import { when } from "@/desk/fmt";
 import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
+import { groupPositionsForBlotter } from "@/lib/packages-from-positions";
 
 export function BookClient() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
@@ -15,13 +16,25 @@ export function BookClient() {
       .then((j: DeskPayload) => setDesk(j));
   }, []);
 
+  const openPackages = groupPositionsForBlotter(desk?.positions ?? []).length;
+
   return (
     <div className="stack">
       <article className="panel">
         <header className="panel-head">
-          <Tip tip="Live paper option packages from Alpaca. Hover blotter headers for field meanings." below>
-            Open positions
-          </Tip>
+          <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
+            <Tip tip="Live paper option packages from Alpaca. Hover blotter headers for field meanings." below>
+              Open positions
+            </Tip>
+            <span
+              className="mono"
+              style={{ color: "var(--faint)", fontWeight: 500 }}
+              data-tip="Number of open packages (grouped legs, not raw option lines)."
+              data-tip-pos="below"
+            >
+              ({openPackages})
+            </span>
+          </span>
         </header>
         <div className="panel-body" style={{ padding: 0 }}>
           <BlotterTable positions={desk?.positions ?? []} empty="None." />

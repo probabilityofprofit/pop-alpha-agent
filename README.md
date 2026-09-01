@@ -44,7 +44,7 @@ npm run loop -- --once --scan-now
 npm run loop
 ```
 
-Every 60 seconds it marks open packages (50% take / 50% stop) and appends a cycle row, including no-trade. In the cash session it builds a tape every 2.5 minutes from 9:30–10:30 a.m. ET, then every 15 minutes, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps to the Friday 4 Sep mark (0–21 DTE, including 0DTE), and builds an MCP-shaped payload. Session cap is 5 new opens. Book cap is 10% of equity; halt at $90k. Last 15 minutes of RTH: no new risk; cancel every working DAY open. Unfilled DAY opens are cancelled at the next scan.
+Every 60 seconds it marks open packages (50% take / 50% stop) and appends a cycle row, including no-trade. In the cash session it builds a tape every 2.5 minutes from 9:30–10:30 a.m. ET, then every 15 minutes, optionally asks OpenAI for a thesis JSON (`OPENAI_API_KEY`), scores hold maps to the Friday 4 Sep mark (0–21 DTE, including 0DTE), and builds an MCP-shaped payload. Book cap is 10% Tue (~ten packages) and 15% from Wed (~fifteen); halt $90k Tue / $85k from Wed. Mix 4/4/4 then 5/5/5. No daily open count. Last 15 minutes of RTH: no new risk; cancel every working DAY open. Unfilled DAY opens are cancelled at the next scan.
 
 Default: print the payload (`LOOP_SEND` unset/false). Set `LOOP_SEND=true` in `.env.local` to have this process send that same mleg body to `paper-api.alpaca.markets` (paper keys only, DAY limit, 2–4 legs). That is the MCP `place_option_order` JSON over paper HTTP so the unattended loop can run without a human paste. The model never calls the door. Cursor MCP `place_option_order` remains valid for a human paste.
 

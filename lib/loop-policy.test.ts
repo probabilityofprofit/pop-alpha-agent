@@ -2,12 +2,15 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   BOOK_CAP,
+  BOOK_CAP_EXPANDED,
   DEFAULT_MAX_QTY,
   EQUITY_FLOOR,
+  EQUITY_FLOOR_EXPANDED,
   OPEN_SCAN_EVERY_MS,
   SCAN_EVERY_MS,
-  SESSION_OPEN_CAP,
+  bookCap,
   capQty,
+  equityFloor,
   inOpeningScanWindow,
   scanIntervalMs,
   cancelPayload,
@@ -45,10 +48,15 @@ describe("opening scan cadence", () => {
 });
 
 describe("official week limits", () => {
-  it("pairs a 10% book with a $90k halt and five session opens", () => {
+  it("keeps 10% / $90k on Tuesday and expands to 15% / $85k from Wednesday", () => {
     assert.equal(BOOK_CAP, 0.1);
+    assert.equal(BOOK_CAP_EXPANDED, 0.15);
     assert.equal(EQUITY_FLOOR, 90_000);
-    assert.equal(SESSION_OPEN_CAP, 5);
+    assert.equal(EQUITY_FLOOR_EXPANDED, 85_000);
+    assert.equal(bookCap(new Date("2026-09-01T20:00:00Z")), 0.1);
+    assert.equal(equityFloor(new Date("2026-09-01T20:00:00Z")), 90_000);
+    assert.equal(bookCap(new Date("2026-09-02T13:30:00Z")), 0.15);
+    assert.equal(equityFloor(new Date("2026-09-02T13:30:00Z")), 85_000);
     assert.equal(DEFAULT_MAX_QTY, 12);
   });
 });
@@ -86,7 +94,6 @@ describe("skippedScanReason", () => {
     allowNewRisk: true,
     lastFifteen: false,
     scanDue: false,
-    sessionCapped: false,
     halt: false,
     hasPending: false,
   };
@@ -100,12 +107,6 @@ describe("skippedScanReason", () => {
     assert.equal(
       skippedScanReason({ ...base, lastFifteen: true }),
       "New risk closed for this clock.",
-    );
-  });
-  it("logs session cap when a scan is due", () => {
-    assert.equal(
-      skippedScanReason({ ...base, scanDue: true, sessionCapped: true }),
-      `Session cap: ${SESSION_OPEN_CAP} new opens.`,
     );
   });
   it("yields to an exit or cancel already pending", () => {

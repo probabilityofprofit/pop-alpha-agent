@@ -6,7 +6,7 @@ import { HoldMapGrid } from "@/desk/hold-map";
 import { money, num, pct, templateLabel, when } from "@/desk/fmt";
 import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
-import { SESSION_OPEN_CAP } from "@/lib/loop-policy";
+import { groupPositionsForBlotter } from "@/lib/packages-from-positions";
 
 export function HomeClient() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
@@ -32,6 +32,7 @@ export function HomeClient() {
 
   const scanRow = desk?.lastScan;
   const decision = scanRow?.decision;
+  const openPackages = groupPositionsForBlotter(desk?.positions ?? []).length;
 
   return (
     <>
@@ -43,7 +44,7 @@ export function HomeClient() {
           data-tip-pos="below"
           style={{ margin: 0, color: "var(--dim)", fontSize: 12 }}
         >
-          Loop {when(desk.lastLoop.at)} · session opens {desk.lastLoop.opensThisSession}/{SESSION_OPEN_CAP} ·{" "}
+          Loop {when(desk.lastLoop.at)} · opens today {desk.lastLoop.opensThisSession} ·{" "}
           {desk.lastLoop.pending
             ? `MCP ${desk.lastLoop.pending.kind} ${desk.lastLoop.pending.sent ? "sent" : "ready"}`
             : desk.lastLoop.skip
@@ -209,9 +210,19 @@ export function HomeClient() {
 
         <article className="panel span-2">
           <header className="panel-head">
-            <Tip tip="Open paper option packages grouped by strategy. Hover column headers for field meanings." below>
-              Paper blotter
-            </Tip>
+            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
+              <Tip tip="Open paper option packages grouped by strategy. Hover column headers for field meanings." below>
+                Paper blotter
+              </Tip>
+              <span
+                className="mono"
+                style={{ color: "var(--faint)", fontWeight: 500 }}
+                data-tip="Number of open packages on the blotter (grouped legs, not raw option lines)."
+                data-tip-pos="below"
+              >
+                ({openPackages})
+              </span>
+            </span>
           </header>
           <div className="panel-body" style={{ padding: 0 }}>
             <BlotterTable positions={desk?.positions ?? []} />

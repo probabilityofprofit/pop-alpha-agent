@@ -8,7 +8,7 @@ Authored 28 Aug 2026 during the Alpaca Options Alpha Agents window. Paper-only. 
 
 Alpaca judges **total account equity**, not cash. Official window: **Mon 31 Aug 2026 9:30 a.m. ET → Fri 4 Sep 2026 9:30 a.m. ET**. They look at **Thursday 3 Sep EOD equity** (Sep 3 expiries’ exercise/assignment included) and take a **Friday 4 Sep 9:30 a.m. ET** equity snapshot. Dollar P&L = that equity − $100,000. Photograph Friday 9:30, **then** flatten — do not flatten before the snapshot. P&L is one judging factor; workflow (autonomy, robustness) also counts.
 
-Halt file: `hackathon/HALT`. If it exists, or equity ≤ $90,000, no new risk. Flattening is allowed. The $90k floor is the same hole as the 10% book cap.
+Halt file: `hackathon/HALT`. If it exists, or equity ≤ the live floor (**$90k Tue**, **$85k from Wed**), no new risk. Flattening is allowed. The floor is the same hole as the live book cap.
 
 ## Who owns what
 
@@ -83,21 +83,19 @@ Rank by manage-by 50% cell, then Friday POP, then Friday mean P&L, then fewer DT
 
 Qty = floor(1% of equity / |maxLoss|). Strip model qty. Skip if qty < 1.
 
-Open defined-risk |maxLoss|×qty ≤ 10% of equity. One package per name. At most four bull verticals, four bear verticals, four irons (loop enforces this before send) so a second cash session of five opens can sit on top of the first. A working open counts as that name’s package. Unattended qty is also capped at 12 lots (`LOOP_MAX_QTY`, default 12) so a units bug cannot send a 45-lot.
+Open defined-risk |maxLoss|×qty ≤ **10% of equity on Tue 1 Sep** (~ten 1% tickets) and **15% from Wed 2 Sep** (~fifteen). That book is the concurrent ceiling — there is no separate daily open count. Equity halt pairs with the hole: **$90k Tue**, **$85k from Wed** (or `hackathon/HALT`). One package per name. Mix **4/4/4 Tue**, **5/5/5 from Wed**. A working open counts as that name’s package. Unattended qty is also capped at 12 lots (`LOOP_MAX_QTY`, default 12) so a units bug cannot send a 45-lot.
 
 DAY only. Join net NBBO: debit at net ask, credit at net bid. Do not cross. Closes: buying back a credit uses net ask; selling a debit uses net bid.
 
 ## 6. Cycle
 
-Scan every 2.5 minutes from 9:30–10:30 a.m. ET (open print after overnight/weekend), then every 15 minutes. 4-minute wall; if a scan runs long, the next starts 2.5 or 15 minutes after it finishes. If time expires, pick among maps already finished. One new open per scan, five per session, one working DAY open. Cancel unfilled at scan end and at the last-15-minutes cutoff.
+Scan every 2.5 minutes from 9:30–10:30 a.m. ET (open print after overnight/weekend), then every 15 minutes. 4-minute wall; if a scan runs long, the next starts 2.5 or 15 minutes after it finishes. If time expires, pick among maps already finished. One new open per scan, one working DAY open. Cancel unfilled at scan end and at the last-15-minutes cutoff.
 
 Exit poll every 60 seconds while anything is open: marks only, no Monte Carlo.
 
 ## 7. Closer
 
 Take profit at 50% of **position** max profit (per-lot maxProfit × qty). Stop at 50% of **position** defined risk (per-lot maxLoss × qty). Mark = package net mid vs filled entry. Do not stop in the first 3 minutes after the open fill — joining NBBO then marking mid is not a 50% loss. Take-profit may still fire. After a stop, do not open that name again this cash session; cancel a working DAY that is a re-entry.
-
-Session cap is five **new opens** (`pop-alpha-<iso>` fills). Close ids (`pop-alpha-x-…`) do not count.
 
 No new official risk after Thursday 3 Sep last 15 minutes, and none on Friday 4 Sep. Thursday EOD marks plus Sep 3 assignment are what Alpaca described as the scored book. Leave packages on through the **Friday 4 Sep 9:30 a.m. ET** snapshot, then flatten. Do not flatten Thursday night or Friday before 9:30 a.m. ET.
 

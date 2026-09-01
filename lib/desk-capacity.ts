@@ -1,6 +1,6 @@
 import { emptyMix, mixCounts } from "../governor/mix";
 import type { DeskCapacity } from "./desk-types";
-import { BOOK_CAP, workingDayOrders } from "./loop-policy";
+import { bookCap, workingDayOrders } from "./loop-policy";
 import { booksFromPositions, templateFromWorkingLegs } from "./packages-from-positions";
 import type { PaperOrder, PaperPosition } from "./paper-broker";
 
@@ -19,7 +19,7 @@ export function deskCapacity(
   const bookUsd = books.reduce((sum, b) => sum + b.pkg.maxLoss * b.qty, 0);
   return {
     bookUsd,
-    bookCapUsd: Number.isFinite(equity) && equity > 0 ? BOOK_CAP * equity : 0,
+    bookCapUsd: Number.isFinite(equity) && equity > 0 ? bookCap(asOf) * equity : 0,
     mix: templates.length ? mixCounts(templates) : emptyMix(),
     names: books.map((b) => b.pkg.underlying),
   };

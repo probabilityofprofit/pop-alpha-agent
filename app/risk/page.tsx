@@ -1,13 +1,14 @@
 import { MAX_DTE, MIN_DTE, WINDOW_END } from "@/governor/calendar";
-import { MIX_CAP } from "@/governor/mix";
+import { MIX_CAP, MIX_CAP_EXPANDED } from "@/governor/mix";
 import { STOP_HOLD_MS } from "@/lib/closer";
 import {
   BOOK_CAP,
+  BOOK_CAP_EXPANDED,
   DEFAULT_MAX_QTY,
   EQUITY_FLOOR,
+  EQUITY_FLOOR_EXPANDED,
   OPEN_SCAN_EVERY_MS,
   SCAN_EVERY_MS,
-  SESSION_OPEN_CAP,
 } from "@/lib/loop-policy";
 
 const ROWS: Array<{ label: string; value: string; note?: string }> = [
@@ -23,23 +24,18 @@ const ROWS: Array<{ label: string; value: string; note?: string }> = [
   },
   {
     label: "Book cap",
-    value: `${Math.round(BOOK_CAP * 100)}% of equity`,
-    note: "Sum of open defined-risk |max loss| × qty.",
+    value: `${Math.round(BOOK_CAP * 100)}% Tue · ${Math.round(BOOK_CAP_EXPANDED * 100)}% from Wed`,
+    note: "Sum of open defined-risk |max loss| × qty. ~10 packages today, ~15 from Wednesday.",
   },
   {
     label: "Equity halt",
-    value: `≤ $${EQUITY_FLOOR.toLocaleString("en-US")}`,
-    note: "Or hackathon/HALT file. Flattening still allowed.",
-  },
-  {
-    label: "Session opens",
-    value: `${SESSION_OPEN_CAP} new fills / cash session`,
-    note: "Filled governor opens this session. Close fills do not count.",
+    value: `≤ $${EQUITY_FLOOR.toLocaleString("en-US")} Tue · $${EQUITY_FLOOR_EXPANDED.toLocaleString("en-US")} from Wed`,
+    note: "Or hackathon/HALT file. Flattening still allowed. Paired with the live book hole.",
   },
   {
     label: "Mix",
-    value: `${MIX_CAP} bull / ${MIX_CAP} bear / ${MIX_CAP} iron`,
-    note: "Open books and working DAY mlegs count. Five new fills per day can stack on names still open.",
+    value: `${MIX_CAP}/${MIX_CAP}/${MIX_CAP} Tue · ${MIX_CAP_EXPANDED}/${MIX_CAP_EXPANDED}/${MIX_CAP_EXPANDED} from Wed`,
+    note: "Bull / bear / iron. Open books and working DAY mlegs count.",
   },
   {
     label: "Tenor",

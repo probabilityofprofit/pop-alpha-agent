@@ -2,12 +2,25 @@
 
 import { ymd } from "../governor/calendar";
 
-/** Official week: 5 new opens / cash session. Mix 4/4/4 lets a second day stack on the first; 10% book is the money cap. */
-export const SESSION_OPEN_CAP = 5;
-/** Defined-risk |maxLoss|×qty of open packages, as a fraction of equity. */
+/** Tue 1 Sep: 10% book. From Wed 2 Sep: 15% (~fifteen 1% tickets). */
+export const BOOK_EXPAND_YMD = "2026-09-02";
+/** Tuesday concurrent money brake (~ten packages). */
 export const BOOK_CAP = 0.1;
-/** Halt new risk at this equity. Same hole as the 10% book on a $100k start. */
+/** Wednesday–Thursday concurrent money brake (~fifteen packages). */
+export const BOOK_CAP_EXPANDED = 0.15;
+/** Halt paired with the 10% book on a $100k start. */
 export const EQUITY_FLOOR = 90_000;
+/** Halt paired with the 15% book on a $100k start. */
+export const EQUITY_FLOOR_EXPANDED = 85_000;
+
+export function bookCap(asOf: Date = new Date()): number {
+  return ymd(asOf) >= BOOK_EXPAND_YMD ? BOOK_CAP_EXPANDED : BOOK_CAP;
+}
+
+export function equityFloor(asOf: Date = new Date()): number {
+  return ymd(asOf) >= BOOK_EXPAND_YMD ? EQUITY_FLOOR_EXPANDED : EQUITY_FLOOR;
+}
+
 /** Fat-finger ceiling when LOOP_MAX_QTY is unset. Does not replace 1% sizing. */
 export const DEFAULT_MAX_QTY = 12;
 /** Rest-of-session tape interval. */
@@ -63,7 +76,6 @@ export function skippedScanReason(input: {
   allowNewRisk: boolean;
   lastFifteen: boolean;
   scanDue: boolean;
-  sessionCapped: boolean;
   halt: boolean;
   hasPending: boolean;
 }): string | null {
@@ -75,7 +87,6 @@ export function skippedScanReason(input: {
     return "Scan not due.";
   }
   if (input.halt) return "Halt file or equity floor.";
-  if (input.sessionCapped) return `Session cap: ${SESSION_OPEN_CAP} new opens.`;
   return null;
 }
 

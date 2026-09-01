@@ -6,7 +6,7 @@ import { DEMO_QUOTES, DEMO_SPOT } from "../governor/demo-chain";
 import type { Template } from "../governor/types";
 import type { LastScan } from "./desk-types";
 import { saveLastScan } from "./last-scan";
-import { EQUITY_FLOOR } from "./loop-policy";
+import { equityFloor } from "./loop-policy";
 import { getAccount, getClock, getOptionChain, getStockSpot, haltPresent } from "./paper-broker";
 import { LEDGER_PATH } from "./paths";
 import { expirationsInSnapshots, quotesFromSnapshots } from "./quotes-from-chain";
@@ -58,7 +58,7 @@ export async function runDeskScan(input: {
   const symbol = (input.symbol ?? "SPY").toUpperCase();
   const [clock, account] = await Promise.all([getClock(), getAccount()]);
   const equity = Number(account.equity);
-  const halt = haltPresent() || equity <= EQUITY_FLOOR;
+  const halt = haltPresent() || equity <= equityFloor(asOf);
   const bounds = tenorBounds(asOf);
   const chain = await getOptionChain({
     underlying: symbol,

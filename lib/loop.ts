@@ -11,22 +11,21 @@ import { classifyTape, type TapeClassRow } from "../governor/tape";
 import type { Decision, Template } from "../governor/types";
 import { mcpPayload, scanExpiry } from "../governor/cycle";
 import { ALL_TEMPLATES } from "../governor/strikes";
-import { MIX_CAP_REASON, allowedTemplates, mixAllows, mixCounts } from "../governor/mix";
+import { allowedTemplates, mixAllows, mixCap, mixCapReason, mixCounts } from "../governor/mix";
 import { markBook, applyStopHold, heldMs, shouldExit } from "./closer";
 import type { LastScan } from "./desk-types";
 import { dispatchPending, type DoorPending, type DoorPersist } from "./door-dispatch";
 import { saveLastScan } from "./last-scan";
 import { saveLastTape } from "./last-tape";
 import {
-  BOOK_CAP,
-  EQUITY_FLOOR,
   LAST_FIFTEEN_CANCEL,
   SCAN_END_CANCEL,
-  SESSION_OPEN_CAP,
   STOPPED_REENTRY_CANCEL,
+  bookCap,
   cancelPayload,
   capQty,
   countSessionOpens,
+  equityFloor,
   isGovernorOpenId,
   loopSendEnabled,
   fillsToLog,
@@ -60,7 +59,7 @@ import { fetchThesis, type ThesisResult } from "./thesis";
 
 export const EXIT_EVERY_MS = 60 * 1000;
 export const SCAN_WALL_MS = 4 * 60 * 1000;
-export { BOOK_CAP, EQUITY_FLOOR, SCAN_EVERY_MS, SESSION_OPEN_CAP } from "./loop-policy";
+export { BOOK_CAP, EQUITY_FLOOR, SCAN_EVERY_MS, bookCap, equityFloor } from "./loop-policy";
 
 export type { DoorKind, DoorPending } from "./door-dispatch";
 
@@ -333,7 +332,11 @@ export async function runScanCycle(
   const id = cycleId(asOf);
   const [clock, account] = await Promise.all([getClock(), getAccount()]);
   const equity = Number(account.equity);
-  const halt = haltPresent() || equity <= EQUITY_FLOOR;
+  const floor = equityFloor(asOf);
+  const cap = bookCap(asOf);
+  const mixLimit = mixCap(asOf);
+  const mixReason = mixCapReason(asOf);
+  const halt = haltPresent() || equity <= floor;
   const already = openUnderlyings(books);
   const tape = await buildTape(already, stopped);
   const thesis = await fetchThesis(tape.kept);
@@ -381,9 +384,9 @@ export async function runScanCycle(
   }
 
   const mix = mixCounts(bookTemplates(books, openOrders));
-  const allowed = allowedTemplates(mix, ALL_TEMPLATES);
+  const allowed = allowedTemplates(mix, ALL_TEMPLATES, mixLimit);
   if (!allowed.length) {
-    return finish({ action: "no_trade", reason: MIX_CAP_REASON }, null);
+    return finish({ action: "no_trade", reason: mixReason }, null);
   }
 
   const hinted = !thesis.skip ? thesis.hint.underlying : null;
@@ -417,10 +420,10 @@ export async function runScanCycle(
     const qty = capQty(best.qty);
     if (qty !== best.qty) best = { ...best, qty };
     const extra = bookUsd(books) + best.package.maxLoss * best.qty;
-    if (extra > BOOK_CAP * equity) {
-      best = { action: "no_trade", reason: `Book cap ${Math.round(BOOK_CAP * 100)}% of equity.` };
-    } else if (!mixAllows(mix, best.package.template)) {
-      best = { action: "no_trade", reason: MIX_CAP_REASON };
+    if (extra > cap * equity) {
+      best = { action: "no_trade", reason: `Book cap ${Math.round(cap * 100)}% of equity.` };
+    } else if (!mixAllows(mix, best.package.template, mixLimit)) {
+      best = { action: "no_trade", reason: mixReason };
     }
   }
 
@@ -438,11 +441,12 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
   const sessionYmd = ymd(asOf);
   const [clock, account, orders] = await Promise.all([getClock(), getAccount(), getOrders()]);
   const equity = Number(account.equity);
-  if (equity <= EQUITY_FLOOR && !haltPresent()) {
+  const floor = equityFloor(asOf);
+  if (equity <= floor && !haltPresent()) {
     writeHalt("equity floor");
     appendLedger(LEDGER_PATH, { ts: asOf.toISOString(), kind: "halt", reason: "equity floor", equity });
   }
-  const halt = haltPresent() || equity <= EQUITY_FLOOR;
+  const halt = haltPresent() || equity <= floor;
   const lastFifteen = lastFifteenMinutesPdt(asOf);
   const opensThisSession = countSessionOpens(orders, sessionYmd);
   const newFills = fillsToLog(orders, persist.loggedFillIds);
@@ -500,7 +504,6 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
     allowNewRisk: allowNewRisk(asOf),
     lastFifteen,
     scanDue,
-    sessionCapped: opensThisSession >= SESSION_OPEN_CAP,
     halt,
     hasPending: Boolean(pending),
   });

@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { LEDGER_PATH, TEST_BOOK_PATH } from "./paths";
 import type { LedgerRow } from "./desk-types";
 
+/** Desk Ledger page: keep a week of ticks so sparse kinds (exit/fill) do not age out of the window. */
+export const DESK_LEDGER_LIMIT = 5_000;
+
 export function readLedger(limit = 80): LedgerRow[] {
   const rows = readLedgerAll();
   return rows.slice(-limit).reverse();

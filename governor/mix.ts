@@ -1,10 +1,24 @@
-/** 4/4/4 mix: four bull verticals, four bear verticals, four irons. Authored 28 Aug 2026. */
+/** Mix caps by contest day. Authored 28 Aug 2026. */
 
+import { ymd } from "./calendar";
 import type { Template } from "./types";
 
-/** Per-bucket ceiling so two cash sessions of five opens can sit together. 10% book is the money cap. */
+/** Same day the book expands to 15%. */
+export const MIX_EXPAND_YMD = "2026-09-02";
+/** Tuesday: four per bucket (book 10% binds near ten packages). */
 export const MIX_CAP = 4;
+/** Wednesday onward: five per bucket so ~fifteen packages can sit. */
+export const MIX_CAP_EXPANDED = 5;
 export const MIX_CAP_REASON = "Mix cap: four bull, four bear, four irons.";
+export const MIX_CAP_REASON_EXPANDED = "Mix cap: five bull, five bear, five irons.";
+
+export function mixCap(asOf: Date = new Date()): number {
+  return ymd(asOf) >= MIX_EXPAND_YMD ? MIX_CAP_EXPANDED : MIX_CAP;
+}
+
+export function mixCapReason(asOf: Date = new Date()): string {
+  return ymd(asOf) >= MIX_EXPAND_YMD ? MIX_CAP_REASON_EXPANDED : MIX_CAP_REASON;
+}
 
 export type MixBucket = "bull" | "bear" | "iron";
 export type MixCounts = Record<MixBucket, number>;
