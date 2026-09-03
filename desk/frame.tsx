@@ -18,6 +18,7 @@ const LINKS = [
   { href: "/loop", label: "Loop", tip: "Heartbeat, capacity, LOOP_SEND, and last skip." },
   { href: "/risk", label: "Risk", tip: "Live governor gates: size, book, halt, mix, Friday mark." },
   { href: "/policy", label: "Policy", tip: "Contest narrative — paper only, MCP door, scored window." },
+  { href: "/writeup", label: "Write-up", tip: "One page write-up: AI logic, risk gates, Alpaca infrastructure." },
 ];
 
 const REPO_URL = "https://github.com/probabilityofprofit/pop-alpha-agent";

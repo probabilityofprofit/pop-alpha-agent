@@ -698,6 +698,35 @@ table.blotter td.blotter-net {
   max-width: 720px;
 }
 
+.writeup .writeup-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.writeup .writeup-h2 {
+  margin: 1.35rem 0 0.45rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.writeup .writeup-h2:first-of-type {
+  margin-top: 0.35rem;
+}
+
+.writeup .writeup-p {
+  margin: 0 0 0.75rem;
+  line-height: 1.55;
+  color: var(--ink) !important;
+}
+
+.writeup .writeup-p:last-child {
+  margin-bottom: 0;
+}
+
 .policy.risk {
   max-width: 960px;
 }
