@@ -214,4 +214,15 @@ export const HISTORY_FALLBACK: HistoryRow[] = [
   { hash: "5c250e8", date: "2026-09-03", title: "Prepare Alpha Desk for Heroku and Namecheap LabLab redirect." },
   { hash: "3e35c98", date: "2026-09-03", title: "Pin Heroku Node to the 24.x LTS line." },
   { hash: "1162c29", date: "2026-09-03", title: "Ship local desk snapshot (ledger, tape, scan, loop status) to Heroku." },
+  { hash: "6ae9bce", date: "2026-09-03", title: "Refresh Heroku history fallback through Sep 3 commits." },
+  {
+    hash: "b443f58",
+    date: "2026-09-03",
+    title: "Freeze Thursday EOD book on the Book tab and flatten after Friday 9:30 ET.",
+  },
+  {
+    hash: "60787a7",
+    date: "2026-09-03",
+    title: "Document Thursday EOD book, Friday flatten, and live desk in README.",
+  },
 ];
