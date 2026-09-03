@@ -31,7 +31,6 @@ const propose: LastScan = {
     map: {
       popAtExpiration: 55,
       popAtManageBy: 50,
-      meanPnl: 10,
       meanPnlAtManageBy: 10,
       cells: { 1: { 25: 40, 50: 30, 75: 20, 100: 10 } },
     },
