@@ -1,6 +1,6 @@
 import { deskCapacity } from "@/lib/desk-capacity";
 import type { DeskPayload } from "@/lib/desk-types";
-import { loadLastScan } from "@/lib/last-scan";
+import { loadLastScan, exhibitScan, loadLastPropose } from "@/lib/last-scan";
 import { loadLastTape } from "@/lib/last-tape";
 import { equityFloor, loopSendEnabled } from "@/lib/loop-policy";
 import { loadLoopStatus } from "@/lib/loop-status";
@@ -21,6 +21,8 @@ export async function GET() {
     orders: [],
     ledger: readLedger(),
     lastScan: loadLastScan(),
+    exhibitScan: null,
+    exhibitFrozen: false,
     lastLoop: loadLoopStatus(),
     lastTape: loadLastTape(),
     capacity: deskCapacity([], [], 0),
@@ -28,6 +30,10 @@ export async function GET() {
     testBook: readTestBook(),
     thursdayBook: loadThursdayBook(),
   };
+
+  const shown = exhibitScan(payload.lastScan, loadLastPropose());
+  payload.exhibitScan = shown.scan;
+  payload.exhibitFrozen = shown.frozen;
 
   if (!payload.paperReady) {
     return Response.json(payload);

@@ -9,6 +9,7 @@ export function repoRoot(): string {
 export const LEDGER_PATH = path.join(repoRoot(), "hackathon", "ledger.jsonl");
 export const HALT_PATH = path.join(repoRoot(), "hackathon", "HALT");
 export const LAST_SCAN_PATH = path.join(repoRoot(), "hackathon", "last-scan.json");
+export const LAST_PROPOSE_PATH = path.join(repoRoot(), "hackathon", "last-propose.json");
 export const LAST_TAPE_PATH = path.join(repoRoot(), "hackathon", "last-tape.json");
 export const TEST_BOOK_PATH = path.join(repoRoot(), "hackathon", "TEST_BOOK.md");
 export const THURSDAY_BOOK_PATH = path.join(repoRoot(), "hackathon", "thursday-book.json");

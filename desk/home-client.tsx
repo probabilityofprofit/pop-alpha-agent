@@ -26,12 +26,13 @@ export function HomeClient() {
   }, [load]);
 
   async function copyDoor() {
-    if (!desk?.lastScan?.mcp) return;
-    await navigator.clipboard.writeText(JSON.stringify(desk.lastScan.mcp, null, 2));
+    if (!desk?.exhibitScan?.mcp) return;
+    await navigator.clipboard.writeText(JSON.stringify(desk.exhibitScan.mcp, null, 2));
   }
 
-  const scanRow = desk?.lastScan;
+  const scanRow = desk?.exhibitScan;
   const decision = scanRow?.decision;
+  const frozen = Boolean(desk?.exhibitFrozen);
   const openPackages = groupPositionsForBlotter(desk?.positions ?? []).length;
 
   return (
@@ -60,9 +61,21 @@ export function HomeClient() {
       <div className="grid">
         <article className="panel">
           <header className="panel-head">
-            <Tip tip="Governor pick from the last scan. Desk never places the order." below>
-              Proposal
-            </Tip>
+            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <Tip tip="Governor pick. When the live scan is idle, the last cleared propose stays frozen here." below>
+                Proposal
+              </Tip>
+              {frozen && decision?.action === "propose" ? (
+                <span
+                  className="mono"
+                  style={{ color: "var(--dim)", fontWeight: 500, fontSize: 11 }}
+                  data-tip="Live scan is idle/no-trade. Showing the last proposal that cleared the map."
+                  data-tip-pos="below"
+                >
+                  frozen · {when(scanRow?.at)}
+                </span>
+              ) : null}
+            </span>
           </header>
           <div className="panel-body">
             {!decision ? (
@@ -141,9 +154,16 @@ export function HomeClient() {
 
         <article className="panel">
           <header className="panel-head">
-            <Tip tip="Monte Carlo grid: P(path has reached that % of max profit by that day). Gates use the Friday row." below>
-              Hold map
-            </Tip>
+            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <Tip tip="Monte Carlo grid: P(path has reached that % of max profit by that day). Gates use the Friday row." below>
+                Hold map
+              </Tip>
+              {frozen && decision?.action === "propose" ? (
+                <span className="mono" style={{ color: "var(--dim)", fontWeight: 500, fontSize: 11 }}>
+                  frozen
+                </span>
+              ) : null}
+            </span>
           </header>
           <div className="panel-body">
             {decision?.action === "propose" ? (
@@ -180,9 +200,16 @@ export function HomeClient() {
 
         <article className="panel">
           <header className="panel-head">
-            <Tip tip="MCP place_option_order JSON. This desk never POSTs it. Copy into Cursor or let LOOP_SEND send." below>
-              MCP door
-            </Tip>
+            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <Tip tip="MCP place_option_order JSON. This desk never POSTs it. Copy into Cursor or let LOOP_SEND send." below>
+                MCP door
+              </Tip>
+              {frozen && scanRow?.mcp ? (
+                <span className="mono" style={{ color: "var(--dim)", fontWeight: 500, fontSize: 11 }}>
+                  frozen
+                </span>
+              ) : null}
+            </span>
             {scanRow?.mcp ? (
               <button
                 type="button"

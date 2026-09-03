@@ -10,7 +10,7 @@ import type { DeskPayload } from "@/lib/desk-types";
 
 const LINKS = [
   { href: "/contest", label: "Contest", tip: "Hackathon week, official P&L clock, and repo feature history." },
-  { href: "/", label: "Desk", tip: "Live proposal, hold map, short ledger, MCP door, and blotter." },
+  { href: "/", label: "Desk", tip: "Live or frozen proposal, hold map, short ledger, MCP door, and blotter." },
   { href: "/tape", label: "Tape", tip: "Load a 0–21 DTE chain and dry-run a name. Does not place." },
   { href: "/scan", label: "Scan", tip: "Last universe the loop scored — kept names and drop reasons." },
   { href: "/book", label: "Book", tip: "Thursday EOD book (frozen), live packages, and recent Alpaca orders." },

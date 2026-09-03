@@ -1,0 +1,93 @@
+{
+  "at": "2026-09-02T15:30:00.000Z",
+  "source": "paper",
+  "underlying": "SPY",
+  "expiration": "2026-09-04",
+  "spot": 772.39,
+  "equity": 96951.85,
+  "decision": {
+    "action": "propose",
+    "package": {
+      "underlying": "SPY",
+      "expiration": "2026-09-04",
+      "dte": 2,
+      "template": "bear_call",
+      "legs": [
+        {
+          "occ": "SPY260904C00772000",
+          "right": "call",
+          "strike": 772,
+          "bid": 2.75,
+          "ask": 2.87,
+          "oi": 500,
+          "iv": 0.1541,
+          "delta": 0.5416,
+          "volume": 5,
+          "side": "sell"
+        },
+        {
+          "occ": "SPY260904C00774000",
+          "right": "call",
+          "strike": 774,
+          "bid": 1.56,
+          "ask": 1.59,
+          "oi": 500,
+          "iv": 0.1359,
+          "delta": 0.4027,
+          "volume": 26,
+          "side": "buy"
+        }
+      ],
+      "credit": true,
+      "netPoints": 1.23,
+      "maxProfit": 123,
+      "maxLoss": 77
+    },
+    "qty": 12,
+    "limit": 1.16,
+    "map": {
+      "popAtExpiration": 54.733333333333334,
+      "meanPnl": 29.47912957091126,
+      "popAtManageBy": 54.733333333333334,
+      "meanPnlAtManageBy": 29.47912957091126,
+      "cells": {
+        "1": {
+          "25": 49.4,
+          "50": 33.8,
+          "75": 17.333333333333332,
+          "100": 0
+        },
+        "2": {
+          "25": 64,
+          "50": 57.2,
+          "75": 50.86666666666667,
+          "100": 48.13333333333333
+        }
+      }
+    },
+    "manageByDays": 2
+  },
+  "mcp": {
+    "qty": "12",
+    "type": "limit",
+    "time_in_force": "day",
+    "order_class": "mleg",
+    "limit_price": "-1.16",
+    "client_order_id": "pop-alpha-20260902T153000000Z",
+    "legs": [
+      {
+        "symbol": "SPY260904C00772000",
+        "ratio_qty": "1",
+        "side": "sell",
+        "position_intent": "sell_to_open"
+      },
+      {
+        "symbol": "SPY260904C00774000",
+        "ratio_qty": "1",
+        "side": "buy",
+        "position_intent": "buy_to_open"
+      }
+    ]
+  },
+  "note": "Frozen exhibit proposal for the Alpha Desk. Replaced when a new propose clears the map."
+}

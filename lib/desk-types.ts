@@ -71,6 +71,9 @@ export type DeskPayload = {
   orders: PaperOrder[];
   ledger: LedgerRow[];
   lastScan: LastScan | null;
+  /** Proposal / hold map / MCP door shown on Desk — live propose or frozen last propose. */
+  exhibitScan: LastScan | null;
+  exhibitFrozen: boolean;
   lastLoop: LastLoop | null;
   lastTape: LastTape | null;
   capacity: DeskCapacity;
