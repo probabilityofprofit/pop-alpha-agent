@@ -225,4 +225,5 @@ export const HISTORY_FALLBACK: HistoryRow[] = [
     date: "2026-09-03",
     title: "Document Thursday EOD book, Friday flatten, and live desk in README.",
   },
+  { hash: "18715a0", date: "2026-09-03", title: "Refresh Heroku history fallback through Thursday book and README commits." },
 ];
