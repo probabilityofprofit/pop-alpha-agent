@@ -22,6 +22,7 @@ import { mcpPayload, scanExpiry } from "../governor/cycle";
 import { ALL_TEMPLATES } from "../governor/strikes";
 import { allowedTemplates, mixAllows, mixCap, mixCapReason, mixCounts, sideTemplates } from "../governor/mix";
 import { markBook, applyStopHold, heldMs, shouldExit } from "./closer";
+import { afterContestSnapshot, CONTEST_FLATTEN_REASON, loadThursdayBook, maybeCaptureThursdayBook } from "./thursday-book";
 import type { LastScan } from "./desk-types";
 import { dispatchPending, type DoorPending, type DoorPersist } from "./door-dispatch";
 import { saveLastScan } from "./last-scan";
@@ -301,6 +302,7 @@ async function runExits(
   const books = booksFromPositions(positions, quotes, asOf);
   const exits: LoopTick["exits"] = [];
   let pending: DoorPending | null = null;
+  const contestFlatten = afterContestSnapshot(asOf);
 
   for (const book of books) {
     const openedAt = book.pkg.legs.some((leg) => freshOpenOccs.has(leg.occ))
@@ -325,7 +327,7 @@ async function runExits(
     const plan = nextClosePlan({
       occs: occList,
       join,
-      shouldExit: shouldExit(mark),
+      shouldExit: contestFlatten || shouldExit(mark),
       quotesLive: closeQuotesLive(book.pkg),
       orders: openOrders,
     });
@@ -339,7 +341,11 @@ async function runExits(
       };
       continue;
     }
-    const reason = mark.take ? "Take 50% of max profit." : "Stop 50% of defined risk.";
+    const reason = contestFlatten
+      ? CONTEST_FLATTEN_REASON
+      : mark.take
+        ? "Take 50% of max profit."
+        : "Stop 50% of defined risk.";
     const mcp = closeMleg(book.pkg, book.qty, join, `pop-alpha-x-${cycleId(asOf)}`);
     pending = {
       kind: "close",
@@ -510,6 +516,9 @@ export async function tick(opts: { forceScan?: boolean; lastScanAt?: number } = 
   const persist = loadPersist();
   const sessionYmd = ymd(asOf);
   const [clock, account, orders] = await Promise.all([getClock(), getAccount(), getOrders()]);
+  if (!loadThursdayBook()) {
+    maybeCaptureThursdayBook(account, await getPositions(), asOf);
+  }
   const equity = Number(account.equity);
   const floor = equityFloor(asOf);
   if (equity <= floor && !haltPresent()) {

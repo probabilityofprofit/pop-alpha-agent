@@ -1,0 +1,230 @@
+{
+  "label": "Post Thursday close",
+  "asOf": "2026-09-03T21:49:00.000Z",
+  "accountNumber": "PA3K9GXACTM7",
+  "equity": "96951.85",
+  "cash": "100829.85",
+  "packageCount": 11,
+  "positions": [
+    {
+      "symbol": "AAL260918C00013000",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-12",
+      "avg_entry_price": "0.55",
+      "current_price": "0.48",
+      "market_value": "-576",
+      "unrealized_pl": "84"
+    },
+    {
+      "symbol": "AAL260918C00014000",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "12",
+      "avg_entry_price": "0.2",
+      "current_price": "0.14",
+      "market_value": "168",
+      "unrealized_pl": "-72"
+    },
+    {
+      "symbol": "AMZN260904P00252500",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "2",
+      "avg_entry_price": "0.29",
+      "current_price": "0.14",
+      "market_value": "28",
+      "unrealized_pl": "-30"
+    },
+    {
+      "symbol": "AMZN260904P00257500",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-2",
+      "avg_entry_price": "1.45",
+      "current_price": "1.05",
+      "market_value": "-210",
+      "unrealized_pl": "80"
+    },
+    {
+      "symbol": "ARM260904P00232500",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "1",
+      "avg_entry_price": "0.6",
+      "current_price": "0.41",
+      "market_value": "41",
+      "unrealized_pl": "-19"
+    },
+    {
+      "symbol": "ARM260904P00250000",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-1",
+      "avg_entry_price": "8",
+      "current_price": "9.15",
+      "market_value": "-915",
+      "unrealized_pl": "-115"
+    },
+    {
+      "symbol": "GOOG260904P00335000",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "2",
+      "avg_entry_price": "0.9",
+      "current_price": "0.64",
+      "market_value": "128",
+      "unrealized_pl": "-52"
+    },
+    {
+      "symbol": "GOOG260904P00340000",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-2",
+      "avg_entry_price": "2.48",
+      "current_price": "2.72",
+      "market_value": "-544",
+      "unrealized_pl": "-48"
+    },
+    {
+      "symbol": "GOOGL260904P00337500",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "2",
+      "avg_entry_price": "0.78",
+      "current_price": "0.48",
+      "market_value": "96",
+      "unrealized_pl": "-60"
+    },
+    {
+      "symbol": "GOOGL260904P00342500",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-2",
+      "avg_entry_price": "2.3",
+      "current_price": "2.21",
+      "market_value": "-442",
+      "unrealized_pl": "18"
+    },
+    {
+      "symbol": "IBIT260904C00046000",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "12",
+      "avg_entry_price": "0.52",
+      "current_price": "0.7",
+      "market_value": "840",
+      "unrealized_pl": "216"
+    },
+    {
+      "symbol": "IBIT260904C00047000",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-12",
+      "avg_entry_price": "0.19",
+      "current_price": "0.33",
+      "market_value": "-396",
+      "unrealized_pl": "-168"
+    },
+    {
+      "symbol": "INTC260904P00090000",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "8",
+      "avg_entry_price": "0.6",
+      "current_price": "0.53",
+      "market_value": "424",
+      "unrealized_pl": "-56"
+    },
+    {
+      "symbol": "INTC260904P00092000",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-8",
+      "avg_entry_price": "1.47",
+      "current_price": "1.5",
+      "market_value": "-1200",
+      "unrealized_pl": "-24"
+    },
+    {
+      "symbol": "META260904P00612500",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "3",
+      "avg_entry_price": "5.1",
+      "current_price": "5.9",
+      "market_value": "1770",
+      "unrealized_pl": "240"
+    },
+    {
+      "symbol": "META260904P00617500",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-3",
+      "avg_entry_price": "7.1",
+      "current_price": "9.6",
+      "market_value": "-2880",
+      "unrealized_pl": "-750"
+    },
+    {
+      "symbol": "NVDA260904C00227500",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "5",
+      "avg_entry_price": "2.09",
+      "current_price": "2.24",
+      "market_value": "1120",
+      "unrealized_pl": "75"
+    },
+    {
+      "symbol": "NVDA260904C00232500",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-5",
+      "avg_entry_price": "0.41",
+      "current_price": "0.46",
+      "market_value": "-230",
+      "unrealized_pl": "-25"
+    },
+    {
+      "symbol": "SNXX260904C00014000",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-12",
+      "avg_entry_price": "0.7",
+      "current_price": "0.55",
+      "market_value": "-660",
+      "unrealized_pl": "180"
+    },
+    {
+      "symbol": "SNXX260904C00015000",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "12",
+      "avg_entry_price": "0.45",
+      "current_price": "0.1",
+      "market_value": "120",
+      "unrealized_pl": "-420"
+    },
+    {
+      "symbol": "TSLA260904P00367500",
+      "asset_class": "us_option",
+      "side": "long",
+      "qty": "2",
+      "avg_entry_price": "3.2",
+      "current_price": "2.35",
+      "market_value": "470",
+      "unrealized_pl": "-170"
+    },
+    {
+      "symbol": "TSLA260904P00375000",
+      "asset_class": "us_option",
+      "side": "short",
+      "qty": "-2",
+      "avg_entry_price": "6.35",
+      "current_price": "5.15",
+      "market_value": "-1030",
+      "unrealized_pl": "240"
+    }
+  ]
+}

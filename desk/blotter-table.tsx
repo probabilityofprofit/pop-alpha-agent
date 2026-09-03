@@ -21,11 +21,14 @@ function netLabel(entryNet: number | null, credit: boolean | null): string {
 export function BlotterTable({
   positions,
   empty = "No open paper positions, or keys not loaded.",
+  asOf,
 }: {
   positions: PaperPosition[];
   empty?: string;
+  /** Freeze DTE / package math to a capture time (Thursday book). */
+  asOf?: Date;
 }) {
-  const groups = groupPositionsForBlotter(positions);
+  const groups = groupPositionsForBlotter(positions, asOf ?? new Date());
   return (
     <table className="data blotter">
       <thead>

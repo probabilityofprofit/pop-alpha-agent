@@ -13,7 +13,7 @@ const LINKS = [
   { href: "/", label: "Desk", tip: "Live proposal, hold map, short ledger, MCP door, and blotter." },
   { href: "/tape", label: "Tape", tip: "Load a 0–21 DTE chain and dry-run a name. Does not place." },
   { href: "/scan", label: "Scan", tip: "Last universe the loop scored — kept names and drop reasons." },
-  { href: "/book", label: "Book", tip: "Open paper packages and recent Alpaca orders." },
+  { href: "/book", label: "Book", tip: "Thursday EOD book (frozen), live packages, and recent Alpaca orders." },
   { href: "/ledger", label: "Ledger", tip: "Full hackathon/ledger.jsonl — every cycle, veto, fill, and halt." },
   { href: "/loop", label: "Loop", tip: "Heartbeat, capacity, LOOP_SEND, and last skip." },
   { href: "/risk", label: "Risk", tip: "Live governor gates: size, book, halt, mix, Friday mark." },

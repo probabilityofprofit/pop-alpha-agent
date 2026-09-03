@@ -5,6 +5,7 @@ import type { MixCounts } from "../governor/mix";
 import type { TapeClassRow } from "../governor/tape";
 import type { Decision } from "../governor/types";
 import type { PaperAccount, PaperClock, PaperOrder, PaperPosition } from "./paper-broker";
+import type { ThursdayBook } from "./thursday-book";
 
 export type LastScan = {
   at: string;
@@ -75,6 +76,8 @@ export type DeskPayload = {
   capacity: DeskCapacity;
   loopSend: boolean;
   testBook: string;
+  /** Frozen post-Thursday-close packages for judging. Survives Friday flatten. */
+  thursdayBook: ThursdayBook | null;
   error?: string;
 };
 

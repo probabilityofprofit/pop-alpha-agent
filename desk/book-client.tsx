@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BlotterTable } from "@/desk/blotter-table";
-import { when } from "@/desk/fmt";
+import { money, when } from "@/desk/fmt";
 import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
 import { groupPositionsForBlotter } from "@/lib/packages-from-positions";
@@ -16,15 +16,53 @@ export function BookClient() {
       .then((j: DeskPayload) => setDesk(j));
   }, []);
 
+  const thursday = desk?.thursdayBook ?? null;
+  const thursdayAsOf = thursday?.asOf ? new Date(thursday.asOf) : undefined;
   const openPackages = groupPositionsForBlotter(desk?.positions ?? []).length;
+  const thursdayPackages =
+    thursday?.packageCount ??
+    (thursday ? groupPositionsForBlotter(thursday.positions, thursdayAsOf).length : 0);
 
   return (
     <div className="stack">
+      {thursday ? (
+        <article className="panel">
+          <header className="panel-head">
+            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <Tip
+                tip="Frozen post-Thursday-close book for judging. Survives Friday flatten. Never overwritten once saved."
+                below
+              >
+                Thursday EOD book
+              </Tip>
+              <span
+                className="mono"
+                style={{ color: "var(--faint)", fontWeight: 500 }}
+                data-tip="Packages frozen at capture."
+                data-tip-pos="below"
+              >
+                ({thursdayPackages})
+              </span>
+              <span className="mono" style={{ color: "var(--dim)", fontWeight: 500, fontSize: 12 }}>
+                equity {money(thursday.equity)} · {thursday.accountNumber.slice(-4)} · {when(thursday.asOf)}
+              </span>
+            </span>
+          </header>
+          <div className="panel-body" style={{ padding: 0 }}>
+            <BlotterTable
+              positions={thursday.positions}
+              asOf={thursdayAsOf}
+              empty="Thursday book file is empty."
+            />
+          </div>
+        </article>
+      ) : null}
+
       <article className="panel">
         <header className="panel-head">
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
             <Tip tip="Live paper option packages from Alpaca. Hover blotter headers for field meanings." below>
-              Open positions
+              Live open positions
             </Tip>
             <span
               className="mono"

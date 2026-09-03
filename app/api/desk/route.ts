@@ -6,6 +6,7 @@ import { equityFloor, loopSendEnabled } from "@/lib/loop-policy";
 import { loadLoopStatus } from "@/lib/loop-status";
 import { getAccount, getClock, getOrders, getPositions, haltPresent, paperKeysReady } from "@/lib/paper-broker";
 import { readLedger, readTestBook } from "@/lib/read-ledger";
+import { loadThursdayBook, maybeCaptureThursdayBook } from "@/lib/thursday-book";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -25,6 +26,7 @@ export async function GET() {
     capacity: deskCapacity([], [], 0),
     loopSend: loopSendEnabled(),
     testBook: readTestBook(),
+    thursdayBook: loadThursdayBook(),
   };
 
   if (!payload.paperReady) {
@@ -44,6 +46,7 @@ export async function GET() {
     payload.orders = orders;
     payload.capacity = deskCapacity(positions, orders, Number(account.equity));
     payload.halt = payload.halt || Number(account.equity) <= equityFloor();
+    payload.thursdayBook = maybeCaptureThursdayBook(account, positions) ?? payload.thursdayBook;
   } catch (err) {
     payload.error = err instanceof Error ? err.message : "Paper read failed.";
   }
