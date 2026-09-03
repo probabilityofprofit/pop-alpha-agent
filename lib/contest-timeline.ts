@@ -156,7 +156,7 @@ export function todayYmd(asOf: Date): string {
 
 export type HistoryRow = { hash: string; date: string; title: string };
 
-/** Used when git is not on the dyno. Keep in date order. */
+/** Used when git is not on the dyno. Keep in date order; refresh from `git log --reverse --format=%h%x09%ad%x09%s --date=short`. */
 export const HISTORY_FALLBACK: HistoryRow[] = [
   { hash: "fcf25e5", date: "2026-08-28", title: "Start the in-window options-alpha agent." },
   { hash: "b44a909", date: "2026-08-28", title: "Add paper size/strike helpers and log the Friday MCP mleg fill." },
@@ -165,8 +165,53 @@ export const HISTORY_FALLBACK: HistoryRow[] = [
   { hash: "33e1402", date: "2026-08-28", title: "Add the RTH loop so the governor can mark exits and scan tape without placing orders." },
   { hash: "4291058", date: "2026-08-28", title: "Update README to remove prior work section." },
   { hash: "49b9c64", date: "2026-08-28", title: "Ledger every loop decision including no-trade, and add an opt-in paper door that can send without a paste." },
-  { hash: "7815663", date: "2026-08-28", title: "Size the official week at 10% book, 90k halt, and 5 session opens with a 2/2/2 mix." },
-  { hash: "b7bc582", date: "2026-08-29", title: "Score packages to the Friday mark, search 0–21 DTE, and scan every 2.5 minutes in the opening hour." },
-  { hash: "a296f47", date: "2026-08-29", title: "Group the paper blotter by strategy with package UPL, net, expiry, and percent of max." },
-  { hash: "43e8ab6", date: "2026-08-29", title: "Add a Risk sidebar page that lists the live governor gates." },
+  {
+    hash: "7815663",
+    date: "2026-08-28",
+    title: "Size the official week at 10% book, 90k halt, and 5 session opens with a 2/2/2 mix, and align docs with the scored equity snapshot.",
+  },
+  {
+    hash: "b7bc582",
+    date: "2026-08-29",
+    title: "Score packages to the Friday mark, search 0–21 DTE including 0DTE, and scan every 2.5 minutes in the opening hour.",
+  },
+  {
+    hash: "a296f47",
+    date: "2026-08-29",
+    title: "Group the paper blotter by strategy with package UPL, net, expiry, and percent of max profit.",
+  },
+  { hash: "43e8ab6", date: "2026-08-29", title: "Add a Risk sidebar page that lists the live governor gates next to Desk, Tape, Book, and Policy." },
+  {
+    hash: "616c6c0",
+    date: "2026-08-29",
+    title: "Add Contest, Ledger, Loop, and Scan so the desk can show the week, the journal, the heartbeat, and why names made the tape.",
+  },
+  {
+    hash: "8ab7de2",
+    date: "2026-08-29",
+    title: "Add desk-wide hover tooltips and a GitHub topbar link so judges can read dense labels without leaving the cockpit.",
+  },
+  {
+    hash: "e403895",
+    date: "2026-08-29",
+    title: "Link LabLab and Alpaca from the desk chrome and Contest hero so visitors can reach the team page and host sites.",
+  },
+  {
+    hash: "17ee1e4",
+    date: "2026-08-31",
+    title: "Scale take/stop to position size, hold stops for three minutes, and raise mix to 4/4/4 under the 10% book.",
+  },
+  {
+    hash: "6c0882c",
+    date: "2026-09-01",
+    title: "Drop the daily open count and size the book by day: 10% / 4/4/4 Tue, 15% / 5/5/5 from Wed with matching halt.",
+  },
+  {
+    hash: "3f530e1",
+    date: "2026-09-02",
+    title: "Size Thursday at 20% with an 80k halt, follow green packages with same-way cluster names, and skip HALT on qty-lock closes.",
+  },
+  { hash: "5c250e8", date: "2026-09-03", title: "Prepare Alpha Desk for Heroku and Namecheap LabLab redirect." },
+  { hash: "3e35c98", date: "2026-09-03", title: "Pin Heroku Node to the 24.x LTS line." },
+  { hash: "1162c29", date: "2026-09-03", title: "Ship local desk snapshot (ledger, tape, scan, loop status) to Heroku." },
 ];
