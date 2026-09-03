@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^(.*)$ https://lablab.probabilityofprofit.com/$1 [R=302,L]

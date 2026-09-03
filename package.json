@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "dev": "next dev -H 127.0.0.1 -p 3001",
     "build": "next build",
-    "start": "next start -H 127.0.0.1 -p 3001"
+    "start": "next start -H 0.0.0.0 -p ${PORT:-3001}"
   },
   "engines": {
     "node": ">=20"
