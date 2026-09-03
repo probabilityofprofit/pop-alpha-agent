@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { num, when } from "@/desk/fmt";
+import { num, pct, when } from "@/desk/fmt";
 import { Tip } from "@/desk/tip";
 import type { DeskPayload } from "@/lib/desk-types";
 
@@ -46,8 +46,16 @@ export function ScanClient() {
             <div className="kv">
               <Tip tip="When the loop last built this universe.">When</Tip>
               <span className="mono">{when(tape.at)}</span>
-              <Tip tip="Names that cleared filters and made the scored tape.">On tape</Tip>
+              <Tip tip="Names that cleared filters and made the scored tape. From Thursday this is the profitable-book cluster.">On tape</Tip>
               <span className="mono">{tape.kept.join(" ") || "—"}</span>
+              <Tip tip="Thursday lean: profitable open packages first, then names that trade with those underlyings.">
+                Cluster
+              </Tip>
+              <span className="mono">
+                {tape.side
+                  ? `${tape.sideSource === "book" ? "book" : tape.sideSource === "session" ? "session" : ""} ${tape.side}${tape.cluster ? ` · ${tape.cluster}` : ""}`.trim()
+                  : "—"}
+              </span>
               <Tip tip="Dropped because a package is already open in that name.">Already open</Tip>
               <span className="mono">{tape.alreadyOpen.join(" ") || "—"}</span>
               <Tip tip="Stopped out earlier this cash session. The loop will not re-open them today.">
@@ -86,7 +94,7 @@ export function ScanClient() {
           type="button"
           className={filter === "kept" ? "" : "ghost"}
           onClick={() => setFilter("kept")}
-          data-tip="Only names that made the scored tape (including SPY/QQQ backstop)."
+          data-tip="Only names that made the scored tape (including SPY/QQQ backstop on Tue/Wed)."
           data-tip-pos="below"
         >
           On tape {tape?.rows.filter((r) => r.kept).length ?? 0}
@@ -104,7 +112,7 @@ export function ScanClient() {
 
       <article className="panel">
         <header className="panel-head">
-          <Tip tip="Actives + movers + SPY/QQQ, with the reason each name was kept or dropped." below>
+          <Tip tip="Actives + movers, then Thursday names that trade with the profitable open packages (or SPY/QQQ backstop earlier in the week)." below>
             Universe
           </Tip>
         </header>
@@ -119,7 +127,12 @@ export function ScanClient() {
                   </Tip>
                 </th>
                 <th>
-                  <Tip tip="Most-active volume when available — used to rank the tape." below>
+                  <Tip tip="Session change vs prior close. Thursday keeps one side only." below>
+                    Δ
+                  </Tip>
+                </th>
+                <th>
+                  <Tip tip="Most-active volume when available — used to rank the tape on Tue/Wed." below>
                     Volume
                   </Tip>
                 </th>
@@ -140,6 +153,9 @@ export function ScanClient() {
                 <tr key={`${row.symbol}-${row.reason}`}>
                   <td className="mono">{row.symbol}</td>
                   <td className="mono">{row.last > 0 ? num(row.last) : "—"}</td>
+                  <td className={`mono ${row.changePct != null && row.changePct !== 0 ? (row.changePct > 0 ? "up" : "down") : ""}`}>
+                    {row.changePct != null ? `${row.changePct > 0 ? "+" : ""}${pct(row.changePct)}` : "—"}
+                  </td>
                   <td className="mono">{row.optionVolume > 0 ? row.optionVolume.toLocaleString("en-US") : "—"}</td>
                   <td>
                     <span className={`pill ${row.kept ? "propose" : "veto"}`}>
@@ -151,7 +167,7 @@ export function ScanClient() {
               ))}
               {!rows.length ? (
                 <tr>
-                  <td colSpan={5} style={{ color: "var(--dim)" }}>
+                  <td colSpan={6} style={{ color: "var(--dim)" }}>
                     Empty until the loop builds a tape.
                   </td>
                 </tr>

@@ -45,6 +45,9 @@ export type LastTape = {
   kept: string[];
   alreadyOpen: string[];
   stoppedThisSession?: string[];
+  side?: "up" | "down" | null;
+  cluster?: string | null;
+  sideSource?: "book" | "session" | null;
   rows: TapeClassRow[];
   decision?: "propose" | "no_trade";
   winner?: string;

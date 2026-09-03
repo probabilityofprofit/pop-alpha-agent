@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { addDaysYmd, allowNewRisk, inTenorWindow, manageByDays, pickTenors } from "./calendar";
-import { classifyTape, dropReason, keepName, rankTape } from "./tape";
+import {
+  classifyOneWayTape,
+  classifyTape,
+  dropReason,
+  keepName,
+  majoritySide,
+  oneWayTape,
+  rankTape,
+} from "./tape";
 import { sizeQty, spreadOk } from "./paper";
 import { buildTemplate } from "./strikes";
 import type { OccQuote } from "./types";
@@ -101,6 +109,137 @@ describe("tape", () => {
     );
     assert.equal(classified.rows.find((r) => r.symbol === "SNXX")?.reason, "Stopped this session.");
     assert.ok(!classified.kept.includes("SNXX"));
+  });
+  it("turns on one-way tape from Thursday", () => {
+    assert.equal(oneWayTape(new Date("2026-09-02T20:00:00Z")), false);
+    assert.equal(oneWayTape(new Date("2026-09-03T13:30:00Z")), true);
+  });
+  it("keeps a same-way cluster and drops the other side", () => {
+    const classified = classifyOneWayTape(
+      [
+        { symbol: "SPY", last: 660, changePct: 0.8, optionVolume: 100 },
+        { symbol: "NVDA", last: 180, changePct: 2.4, optionVolume: 9000 },
+        { symbol: "AMD", last: 160, changePct: 1.9, optionVolume: 8000 },
+        { symbol: "AVGO", last: 300, changePct: 1.5, optionVolume: 7000 },
+        { symbol: "XOM", last: 110, changePct: 1.2, optionVolume: 6000 },
+        { symbol: "JPM", last: 200, changePct: -1.1, optionVolume: 5000 },
+      ],
+      new Set(),
+    );
+    assert.equal(classified.side, "up");
+    assert.equal(classified.cluster, "semi");
+    assert.deepEqual(classified.kept, ["NVDA", "AMD", "AVGO"]);
+    assert.equal(classified.rows.find((r) => r.symbol === "JPM")?.reason, "Wrong way (session up).");
+    assert.equal(classified.rows.find((r) => r.symbol === "XOM")?.reason, "Outside the semi cluster.");
+  });
+  it("idles when SPY and the tape are two-sided", () => {
+    const classified = classifyOneWayTape(
+      [
+        { symbol: "SPY", last: 660, changePct: 0.05, optionVolume: 100 },
+        { symbol: "QQQ", last: 480, changePct: -0.04, optionVolume: 90 },
+        { symbol: "NVDA", last: 180, changePct: 0.2, optionVolume: 9000 },
+        { symbol: "JPM", last: 200, changePct: -0.2, optionVolume: 8000 },
+      ],
+      new Set(),
+    );
+    assert.equal(classified.side, null);
+    assert.deepEqual(classified.kept, []);
+    assert.equal(classified.rows.find((r) => r.symbol === "NVDA")?.reason, "Session is not one-way.");
+  });
+  it("follows the green sleeve, not the larger losing count", () => {
+    assert.equal(
+      majoritySide([
+        { symbol: "AAPL", template: "bull_put", pnl: -6 },
+        { symbol: "INTC", template: "bull_put", pnl: 216 },
+        { symbol: "IBIT", template: "bull_put", pnl: 72 },
+        { symbol: "SOFI", template: "bull_put", pnl: 0 },
+        { symbol: "AAL", template: "bear_call", pnl: -84 },
+        { symbol: "PCG", template: "bear_call", pnl: -480 },
+        { symbol: "SNXX", template: "bear_call", pnl: -240 },
+        { symbol: "SQQQ", template: "bull_put", pnl: -180 },
+        { symbol: "SOXS", template: "bear_call", pnl: 56 },
+        { symbol: "TQQQ", template: "bear_call", pnl: -144 },
+        { symbol: "SPY", template: "iron_condor", pnl: -8 },
+        { symbol: "QQQ", template: "iron_condor", pnl: 170 },
+      ]),
+      "up",
+    );
+    assert.equal(
+      majoritySide([
+        { symbol: "AAPL", template: "bull_put", pnl: -10 },
+        { symbol: "INTC", template: "bull_put", pnl: -10 },
+        { symbol: "AAL", template: "bear_call", pnl: 50 },
+      ]),
+      "down",
+    );
+    assert.equal(
+      majoritySide([
+        { symbol: "AAPL", template: "bull_put", pnl: -100 },
+        { symbol: "AAL", template: "bear_call", pnl: -80 },
+      ]),
+      null,
+    );
+  });
+  it("scans names that trade with the profitable packages", () => {
+    const classified = classifyOneWayTape(
+      [
+        { symbol: "SPY", last: 660, changePct: -1.2, optionVolume: 100 },
+        { symbol: "MSFT", last: 420, changePct: 1.1, optionVolume: 5000 },
+        { symbol: "AMD", last: 160, changePct: 1.4, optionVolume: 4000 },
+        { symbol: "HOOD", last: 22, changePct: 0.9, optionVolume: 3000 },
+        { symbol: "COIN", last: 250, changePct: 1.2, optionVolume: 3500 },
+        { symbol: "XOM", last: 110, changePct: 2.0, optionVolume: 6000 },
+        { symbol: "JPM", last: 200, changePct: -1.1, optionVolume: 2000 },
+      ],
+      new Set(["AAPL", "INTC", "SOFI", "IBIT"]),
+      15,
+      new Set(),
+      [
+        { symbol: "AAPL", template: "bull_put", pnl: -6 },
+        { symbol: "INTC", template: "bull_put", pnl: 216 },
+        { symbol: "SOFI", template: "bull_put", pnl: 0 },
+        { symbol: "IBIT", template: "bull_put", pnl: 72 },
+        { symbol: "AAL", template: "bear_call", pnl: -84 },
+        { symbol: "PCG", template: "bear_call", pnl: -480 },
+        { symbol: "SNXX", template: "bear_call", pnl: -240 },
+      ],
+    );
+    assert.equal(classified.side, "up");
+    assert.equal(classified.sideSource, "book");
+    assert.ok(classified.kept.includes("AMD"));
+    assert.ok(classified.kept.includes("COIN"));
+    assert.ok(!classified.kept.includes("MSFT"));
+    assert.ok(!classified.kept.includes("HOOD"));
+    assert.ok(!classified.kept.includes("XOM"));
+    assert.equal(classified.rows.find((r) => r.symbol === "JPM")?.reason, "Wrong way (book up).");
+    assert.equal(classified.rows.find((r) => r.symbol === "XOM")?.reason, "Does not trade with the profitable names.");
+  });
+  it("idles when the open book has no green side", () => {
+    const classified = classifyOneWayTape(
+      [
+        { symbol: "SPY", last: 660, changePct: 1.2, optionVolume: 100 },
+        { symbol: "NVDA", last: 180, changePct: 2.0, optionVolume: 9000 },
+      ],
+      new Set(["AAPL"]),
+      15,
+      new Set(),
+      [{ symbol: "AAPL", template: "bull_put", pnl: -50 }],
+    );
+    assert.equal(classified.side, null);
+    assert.deepEqual(classified.kept, []);
+    assert.equal(classified.rows.find((r) => r.symbol === "NVDA")?.reason, "No profitable side to follow.");
+  });
+  it("keeps a lone strong name when no cohort has two members", () => {
+    const classified = classifyOneWayTape(
+      [
+        { symbol: "SPY", last: 660, changePct: -0.9, optionVolume: 100 },
+        { symbol: "DELL", last: 120, changePct: -3.2, optionVolume: 4000 },
+      ],
+      new Set(),
+    );
+    assert.equal(classified.side, "down");
+    assert.equal(classified.cluster, "single");
+    assert.deepEqual(classified.kept, ["DELL"]);
   });
 });
 

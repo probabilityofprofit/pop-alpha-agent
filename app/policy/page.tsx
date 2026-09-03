@@ -22,8 +22,8 @@ export default function PolicyPage() {
             Opens: Cursor MCP <span className="mono">place_option_order</span> mleg, or that same
             payload via the paper door. The model never calls either.
           </li>
-          <li>Templates: bull/bear call and put verticals, iron condor, iron fly. Unlimited loss is a veto.</li>
-          <li>Size: floor(1% equity / |max loss|). Book 10% Tue (~ten packages), 15% from Wed (~fifteen). Halt $90k Tue / $85k from Wed, or hackathon/HALT. No daily open count. Mix 4/4/4 Tue, 5/5/5 from Wed. One package per name.</li>
+          <li>Templates: bull/bear call and put verticals, iron condor, iron fly. Unlimited loss is a veto. From Thursday, new risk is session-side verticals only (no new irons).</li>
+          <li>Size: floor(1% equity / |max loss|). Book 10% Tue, 15% Wed, 20% from Thu. Halt $90k / $85k / $80k, or hackathon/HALT. No daily open count. Mix 4/4/4 Tue, 5/5/5 Wed, session-side verticals / 20 from Thu. Thursday tape follows profitable open packages and names that trade with those underlyings. One package per name.</li>
           <li>Tenor 0–21 DTE (0DTE in search). Scan every 2.5 minutes 9:30–10:30 a.m. ET, then every 15 minutes. Join NBBO DAY. Take/stop 50% of position max profit / defined risk (per-lot × qty). No stop for 3 minutes after fill. No same-name re-entry after a stop. Gates use the Friday mark, not expiry.</li>
           <li>
             Official P&amp;L: new $100k paper, total equity (not cash). Window Mon 31 9:30 a.m. ET →

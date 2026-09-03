@@ -1,12 +1,14 @@
 import { MAX_DTE, MIN_DTE, WINDOW_END } from "@/governor/calendar";
-import { MIX_CAP, MIX_CAP_EXPANDED } from "@/governor/mix";
+import { MIX_CAP, MIX_CAP_EXPANDED, MIX_CAP_THURSDAY } from "@/governor/mix";
 import { STOP_HOLD_MS } from "@/lib/closer";
 import {
   BOOK_CAP,
   BOOK_CAP_EXPANDED,
+  BOOK_CAP_THURSDAY,
   DEFAULT_MAX_QTY,
   EQUITY_FLOOR,
   EQUITY_FLOOR_EXPANDED,
+  EQUITY_FLOOR_THURSDAY,
   OPEN_SCAN_EVERY_MS,
   SCAN_EVERY_MS,
 } from "@/lib/loop-policy";
@@ -24,18 +26,18 @@ const ROWS: Array<{ label: string; value: string; note?: string }> = [
   },
   {
     label: "Book cap",
-    value: `${Math.round(BOOK_CAP * 100)}% Tue · ${Math.round(BOOK_CAP_EXPANDED * 100)}% from Wed`,
-    note: "Sum of open defined-risk |max loss| × qty. ~10 packages today, ~15 from Wednesday.",
+    value: `${Math.round(BOOK_CAP * 100)}% Tue · ${Math.round(BOOK_CAP_EXPANDED * 100)}% Wed · ${Math.round(BOOK_CAP_THURSDAY * 100)}% from Thu`,
+    note: "Sum of open defined-risk |max loss| × qty. ~10 / ~15 / ~20 one-percent tickets.",
   },
   {
     label: "Equity halt",
-    value: `≤ $${EQUITY_FLOOR.toLocaleString("en-US")} Tue · $${EQUITY_FLOOR_EXPANDED.toLocaleString("en-US")} from Wed`,
+    value: `≤ $${EQUITY_FLOOR.toLocaleString("en-US")} Tue · $${EQUITY_FLOOR_EXPANDED.toLocaleString("en-US")} Wed · $${EQUITY_FLOOR_THURSDAY.toLocaleString("en-US")} from Thu`,
     note: "Or hackathon/HALT file. Flattening still allowed. Paired with the live book hole.",
   },
   {
     label: "Mix",
-    value: `${MIX_CAP}/${MIX_CAP}/${MIX_CAP} Tue · ${MIX_CAP_EXPANDED}/${MIX_CAP_EXPANDED}/${MIX_CAP_EXPANDED} from Wed`,
-    note: "Bull / bear / iron. Open books and working DAY mlegs count.",
+    value: `${MIX_CAP}/${MIX_CAP}/${MIX_CAP} Tue · ${MIX_CAP_EXPANDED}/${MIX_CAP_EXPANDED}/${MIX_CAP_EXPANDED} Wed · one-way / ${MIX_CAP_THURSDAY} from Thu`,
+    note: "Bull / bear / iron Tue–Wed. From Thursday: session-side verticals only so one-way tickets can fill the 20% book. Open books and working DAY opens count.",
   },
   {
     label: "Tenor",
@@ -44,13 +46,13 @@ const ROWS: Array<{ label: string; value: string; note?: string }> = [
   },
   {
     label: "Structures",
-    value: "Defined-risk verticals & irons only",
-    note: "Unlimited loss is a hard veto. DAY limit, join NBBO.",
+    value: "Defined-risk verticals & irons (Tue–Wed) · session-side verticals from Thu",
+    note: "Unlimited loss is a hard veto. DAY limit, join NBBO. Thursday drops irons and the opposite side.",
   },
   {
     label: "Take / stop",
     value: "50% of position max profit / 50% of position risk",
-    note: `Per-lot × qty. No stop for ${STOP_HOLD_MS / 60_000} min after fill. No same-name re-entry after a stop.`,
+    note: `Per-lot × qty. No stop for ${STOP_HOLD_MS / 60_000} min after fill. No same-name re-entry after a stop. Working closes are not restacked; replace if join walks through the limit.`,
   },
   {
     label: "Hold-map gates",
@@ -60,7 +62,7 @@ const ROWS: Array<{ label: string; value: string; note?: string }> = [
   {
     label: "Scan cadence",
     value: `${OPEN_SCAN_EVERY_MS / 60_000} min open hour · ${SCAN_EVERY_MS / 60_000} min after`,
-    note: "9:30–10:30 a.m. ET fast tape; then 15 minutes.",
+    note: "9:30–10:30 a.m. ET fast tape; then 15 minutes. From Thursday the tape follows profitable open packages and names that trade with those underlyings.",
   },
   {
     label: "Clock cuts",

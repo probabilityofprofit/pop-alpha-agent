@@ -132,7 +132,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
               <span className={`mono ${pnlClass(dayPnl)}`}>{signedMoney(dayPnl)}</span>
             </div>
             <div className="metric">
-              <Tip tip="HALT file or equity ≤ $90k. Flattening still allowed; no new risk." below>
+              <Tip tip="HALT file or equity at/under the live floor ($90k Tue, $85k Wed, $80k from Thu). Flattening still allowed; no new risk." below>
                 <b>Halt</b>
               </Tip>
               <span className={desk?.halt ? "down" : "up"}>{desk?.halt ? "HALT" : "Clear"}</span>

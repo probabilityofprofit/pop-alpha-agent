@@ -7,7 +7,7 @@
   "scripts": {
     "scan": "tsx governor/index.ts",
     "loop": "tsx governor/loop.ts",
-    "test": "tsx --test governor/governor.test.ts governor/map.test.ts governor/mix.test.ts governor/pick.test.ts lib/occ.test.ts lib/paper-broker.test.ts lib/closer.test.ts lib/thesis.test.ts lib/packages-from-positions.test.ts lib/loop-policy.test.ts lib/paper-door.test.ts lib/last-tape.test.ts lib/contest-timeline.test.ts",
+    "test": "tsx --test governor/governor.test.ts governor/map.test.ts governor/mix.test.ts governor/pick.test.ts governor/payoff.test.ts lib/occ.test.ts lib/paper-broker.test.ts lib/closer.test.ts lib/thesis.test.ts lib/packages-from-positions.test.ts lib/loop-policy.test.ts lib/paper-door.test.ts lib/last-tape.test.ts lib/contest-timeline.test.ts",
     "typecheck": "tsc --noEmit",
     "dev": "next dev -H 127.0.0.1 -p 3001",
     "build": "next build",

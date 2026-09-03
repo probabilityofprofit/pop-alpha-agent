@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { groupPositionsForBlotter, inferTemplate, templateFromWorkingLegs } from "./packages-from-positions";
+import { booksFromPositions, groupPositionsForBlotter, inferTemplate, templateFromWorkingLegs } from "./packages-from-positions";
 import { dummyLeg } from "./closer";
 import type { PaperPosition } from "./paper-broker";
 
@@ -60,5 +60,17 @@ describe("open packages", () => {
     assert.equal(nvda?.strategyUpl, 28);
     assert.ok(nvda?.pctOfMaxProfit != null);
     assert.ok(Math.abs(nvda!.pctOfMaxProfit! - (100 * 28) / 183) < 0.01);
+  });
+  it("carries package unrealized P&L", () => {
+    const books = booksFromPositions(
+      [
+        pos("NVDA260904C00220000", "short", "4", "101"),
+        pos("NVDA260904C00225000", "long", "2.17", "-73"),
+      ],
+      {},
+      new Date("2026-08-29T16:00:00Z"),
+    );
+    assert.equal(books.length, 1);
+    assert.equal(books[0]?.pnl, 28);
   });
 });

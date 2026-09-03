@@ -8,7 +8,7 @@ Authored 28 Aug 2026 during the Alpaca Options Alpha Agents window. Paper-only. 
 
 Alpaca judges **total account equity**, not cash. Official window: **Mon 31 Aug 2026 9:30 a.m. ET → Fri 4 Sep 2026 9:30 a.m. ET**. They look at **Thursday 3 Sep EOD equity** (Sep 3 expiries’ exercise/assignment included) and take a **Friday 4 Sep 9:30 a.m. ET** equity snapshot. Dollar P&L = that equity − $100,000. Photograph Friday 9:30, **then** flatten — do not flatten before the snapshot. P&L is one judging factor; workflow (autonomy, robustness) also counts.
 
-Halt file: `hackathon/HALT`. If it exists, or equity ≤ the live floor (**$90k Tue**, **$85k from Wed**), no new risk. Flattening is allowed. The floor is the same hole as the live book cap.
+Halt file: `hackathon/HALT`. If it exists, or equity ≤ the live floor (**$90k Tue**, **$85k Wed**, **$80k from Thu**), no new risk. Flattening is allowed. The floor is the same hole as the live book cap.
 
 ## Who owns what
 
@@ -23,7 +23,7 @@ Halt file: `hackathon/HALT`. If it exists, or equity ≤ the live floor (**$90k 
 
 Paper only. `ALPACA_PAPER_TRADE=true`. Never construct a live Alpaca client or read live `ALPACA_API_KEY` / `ALPACA_SECRET_KEY`.
 
-Opens: MCP `place_option_order` mleg, or the loop paper door posting that same payload when `LOOP_SEND=true`. Closes: same, then `close_position` per leftover OCC after two rejected mleg closes (`legwiseClose`). The model never calls either.
+Opens: MCP `place_option_order` mleg, or the loop paper door posting that same payload when `LOOP_SEND=true`. Closes: same join-NBBO DAY mleg; do not restack while one is working. If join walks through the working limit, cancel and replace next tick. Qty-lock rejects do not halt. Two true mleg rejects then `close_position` per leftover OCC (`legwiseClose`). Leftover with no working order writes the halt file. The model never calls either.
 
 New risk only when `get_clock.is_open`. No queue for the next open. No new opens in the last 15 minutes of the cash session (after 12:45 p.m. PDT). Cancel working DAY opens then. Exit polls still run.
 
@@ -32,15 +32,15 @@ New risk only when `get_clock.is_open`. No queue for the next open. No new opens
 Each scan:
 
 1. `get_most_active_stocks` volume top 30.
-2. Union `get_market_movers` stocks top 10.
+2. Union `get_market_movers` stocks (top 10 Tue/Wed, top 20 from Thu).
 3. Drop crypto, OTC, halted, last < $10, names with an open or working package.
 4. Drop corp actions (div/split/merger/spinoff) in the next 21 calendar days.
 5. Drop **new credits** on event week: news in 36 hours matching earnings/EPS, or IV term ≤ 0.90. Debits may still score.
 6. Keep names with some 0–21 DTE expiry that has contract volume ≥ 1,000 and OI ≥ 500 on short-leg candidates.
-7. Rank by that window’s option volume. Max 15 names.
-8. Keep SPY and QQQ if they pass leg liquidity, unless they fail 4–5 or already have a package.
+7. **Tue/Wed:** rank by that window’s option volume. Max 15 names. Keep SPY and QQQ if they pass leg liquidity, unless they fail 4–5 or already have a package.
+8. **From Thu 3 Sep (last full day):** follow packages that are currently green. Side = bull vs bear **unrealized P&L** on open stock verticals (not headcount). Index, inverse, and 3x ETFs do not vote; irons do not vote. If that sleeve’s total is not > 0, no new risk. New tickets are only that side’s verticals. Tape seeds the clusters of the **green** names (mega / semi / fintech / crypto / …) and keeps names in those clusters with |Δ| ≥ 0.5% the same way. Rank by |Δ|. No SPY/QQQ backstop. Working DAY opens do not vote.
 
-Ignore a model ticker that is not on the tape.
+Ignore a model ticker that is not on the tape. Thursday new risk follows the profitable open verticals (bull if the green stock bulls are making money, bear if the green stock bears are). Irons and the opposite side are off so stacked same-way tickets can fill the 20% book. Mix cap on that side is 20; the book % still binds.
 
 Tenor: 0–21 calendar DTE, one expiry per ticket. Always score expiries that settle on or before Fri 4 Sep (including 0DTE). Also score those closest to 7, 14, and 21 DTE. No new risk on Fri 4 Sep, so Friday 0DTE is not opened. Thursday 3 Sep 0DTE is allowed; assignment that day is in Alpaca’s Thursday EOD figure.
 
@@ -83,13 +83,13 @@ Rank by manage-by 50% cell, then Friday POP, then Friday mean P&L, then fewer DT
 
 Qty = floor(1% of equity / |maxLoss|). Strip model qty. Skip if qty < 1.
 
-Open defined-risk |maxLoss|×qty ≤ **10% of equity on Tue 1 Sep** (~ten 1% tickets) and **15% from Wed 2 Sep** (~fifteen). That book is the concurrent ceiling — there is no separate daily open count. Equity halt pairs with the hole: **$90k Tue**, **$85k from Wed** (or `hackathon/HALT`). One package per name. Mix **4/4/4 Tue**, **5/5/5 from Wed**. A working open counts as that name’s package. Unattended qty is also capped at 12 lots (`LOOP_MAX_QTY`, default 12) so a units bug cannot send a 45-lot.
+Open defined-risk |maxLoss|×qty ≤ **10% of equity on Tue 1 Sep** (~ten 1% tickets), **15% on Wed 2 Sep** (~fifteen), and **20% from Thu 3 Sep** (~twenty). That book is the concurrent ceiling — there is no separate daily open count. Equity halt pairs with the hole: **$90k Tue**, **$85k Wed**, **$80k from Thu** (or `hackathon/HALT`). One package per name. Mix **4/4/4 Tue**, **5/5/5 Wed**, and **session-side verticals / 20 from Thu** (no new irons or opposite-side tickets; new risk follows the green open sleeve). A working open counts as that name’s package. Unattended qty is also capped at 12 lots (`LOOP_MAX_QTY`, default 12) so a units bug cannot send a 45-lot.
 
 DAY only. Join net NBBO: debit at net ask, credit at net bid. Do not cross. Closes: buying back a credit uses net ask; selling a debit uses net bid.
 
 ## 6. Cycle
 
-Scan every 2.5 minutes from 9:30–10:30 a.m. ET (open print after overnight/weekend), then every 15 minutes. 4-minute wall; if a scan runs long, the next starts 2.5 or 15 minutes after it finishes. If time expires, pick among maps already finished. One new open per scan, one working DAY open. Cancel unfilled at scan end and at the last-15-minutes cutoff.
+Scan every 2.5 minutes from 9:30–10:30 a.m. ET (open print after overnight/weekend), then every 15 minutes. 4-minute wall; if a scan runs long, the next starts 2.5 or 15 minutes after it finishes. If time expires, pick among maps already finished. One new open per scan, one working DAY open. Cancel unfilled **opens** at scan end and at the last-15-minutes cutoff. Working **closes** stay until fill, stale-replace, or the mark is no longer take/stop.
 
 Exit poll every 60 seconds while anything is open: marks only, no Monte Carlo.
 
@@ -99,7 +99,7 @@ Take profit at 50% of **position** max profit (per-lot maxProfit × qty). Stop a
 
 No new official risk after Thursday 3 Sep last 15 minutes, and none on Friday 4 Sep. Thursday EOD marks plus Sep 3 assignment are what Alpaca described as the scored book. Leave packages on through the **Friday 4 Sep 9:30 a.m. ET** snapshot, then flatten. Do not flatten Thursday night or Friday before 9:30 a.m. ET.
 
-Close path: mleg `place_option_order`, one retry, then `close_position`. Leftover after two attempts: halt file. Assignment: flatten the rest of the package.
+Close path: join-NBBO DAY mleg. Do not restack a close while one is working. If join walks through the working limit, cancel and replace next tick. Qty-lock rejects do not halt. Two true mleg rejects then `close_position`; leftover with no working order writes the halt file. Assignment: flatten the rest of the package.
 
 ## 8. Model contract
 
@@ -128,4 +128,4 @@ Friday 4 Sep 9:30 a.m. ET: `CONTEST.md` / `CONTEST.json` from MCP account, histo
 
 Allow: bull/bear call and put verticals, iron condor, iron butterfly, 0–21 DTE including 0DTE, explicit no-trade, scan with modelSkip.
 
-Deny: naked shorts, unlimited-loss straddles/strangles/ratios, stock, crypto, single-leg, calendars, diagonals, off-tape names, second package in a name, re-open after a stop the same session, live trading, market mleg, model qty/limit/OCC, invented P&L, holding a working DAY into the next scan or into the last 15 minutes of RTH, a send path that is not the MCP-shaped paper door.
+Deny: naked shorts, unlimited-loss straddles/strangles/ratios, stock, crypto, single-leg, calendars, diagonals, off-tape names, second package in a name, re-open after a stop the same session, live trading, market mleg, model qty/limit/OCC, invented P&L, holding a working DAY **open** into the next scan or into the last 15 minutes of RTH, a send path that is not the MCP-shaped paper door.

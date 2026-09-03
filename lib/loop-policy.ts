@@ -4,21 +4,33 @@ import { ymd } from "../governor/calendar";
 
 /** Tue 1 Sep: 10% book. From Wed 2 Sep: 15% (~fifteen 1% tickets). */
 export const BOOK_EXPAND_YMD = "2026-09-02";
+/** From Thu 3 Sep: 20% (~twenty 1% tickets). */
+export const BOOK_EXPAND_THU_YMD = "2026-09-03";
 /** Tuesday concurrent money brake (~ten packages). */
 export const BOOK_CAP = 0.1;
-/** Wednesday–Thursday concurrent money brake (~fifteen packages). */
+/** Wednesday concurrent money brake (~fifteen packages). */
 export const BOOK_CAP_EXPANDED = 0.15;
+/** Thursday concurrent money brake (~twenty packages). */
+export const BOOK_CAP_THURSDAY = 0.2;
 /** Halt paired with the 10% book on a $100k start. */
 export const EQUITY_FLOOR = 90_000;
 /** Halt paired with the 15% book on a $100k start. */
 export const EQUITY_FLOOR_EXPANDED = 85_000;
+/** Halt paired with the 20% book on a $100k start. */
+export const EQUITY_FLOOR_THURSDAY = 80_000;
 
 export function bookCap(asOf: Date = new Date()): number {
-  return ymd(asOf) >= BOOK_EXPAND_YMD ? BOOK_CAP_EXPANDED : BOOK_CAP;
+  const day = ymd(asOf);
+  if (day >= BOOK_EXPAND_THU_YMD) return BOOK_CAP_THURSDAY;
+  if (day >= BOOK_EXPAND_YMD) return BOOK_CAP_EXPANDED;
+  return BOOK_CAP;
 }
 
 export function equityFloor(asOf: Date = new Date()): number {
-  return ymd(asOf) >= BOOK_EXPAND_YMD ? EQUITY_FLOOR_EXPANDED : EQUITY_FLOOR;
+  const day = ymd(asOf);
+  if (day >= BOOK_EXPAND_THU_YMD) return EQUITY_FLOOR_THURSDAY;
+  if (day >= BOOK_EXPAND_YMD) return EQUITY_FLOOR_EXPANDED;
+  return EQUITY_FLOOR;
 }
 
 /** Fat-finger ceiling when LOOP_MAX_QTY is unset. Does not replace 1% sizing. */
@@ -65,10 +77,77 @@ export function capQty(qty: number, maxRaw: string | undefined = process.env.LOO
 
 const TERMINAL = new Set(["filled", "canceled", "cancelled", "expired", "rejected", "done_for_day"]);
 
-export type WorkingOrder = { id: string; status: string; client_order_id?: string };
+export type WorkingOrder = {
+  id: string;
+  status: string;
+  client_order_id?: string;
+  limit_price?: string | null;
+  legs?: Array<{ symbol: string }> | null;
+};
 
 export function workingDayOrders<T extends WorkingOrder>(orders: T[]): T[] {
   return orders.filter((o) => Boolean(o.id) && !TERMINAL.has(o.status));
+}
+
+export function workingGovernorOpens<T extends WorkingOrder>(orders: T[]): T[] {
+  return workingDayOrders(orders).filter((o) => isGovernorOpenId(o.client_order_id));
+}
+
+export function workingGovernorCloses<T extends WorkingOrder>(orders: T[]): T[] {
+  return workingDayOrders(orders).filter((o) => isGovernorCloseId(o.client_order_id));
+}
+
+/** Working close cannot join current NBBO. Must be willing to pay at least `join`. */
+export function closeLimitStale(workingLimit: number, join: number): boolean {
+  if (!Number.isFinite(workingLimit) || !Number.isFinite(join)) return true;
+  return workingLimit + 1e-9 < join;
+}
+
+export const STALE_CLOSE_CANCEL = "Stale close. Join moved through the working limit.";
+export const MARK_GONE_CLOSE_CANCEL = "Mark no longer take/stop. Cancel working close.";
+
+export type ClosePlan =
+  | { kind: "place" }
+  | { kind: "wait" }
+  | { kind: "skip" }
+  | { kind: "cancel"; orderId: string; reason: string };
+
+/** One working close per package. Replace if join walked through the limit. Never restack. */
+export function nextClosePlan(input: {
+  occs: readonly string[];
+  join: number;
+  shouldExit: boolean;
+  quotesLive: boolean;
+  orders: WorkingOrder[];
+}): ClosePlan {
+  const want = new Set(input.occs);
+  const overlapping = workingDayOrders(input.orders).filter((o) =>
+    (o.legs ?? []).some((leg) => want.has(leg.symbol)),
+  );
+  const workingClose = overlapping.find((o) => !isGovernorOpenId(o.client_order_id));
+  if (workingClose) {
+    if (!input.quotesLive) return { kind: "wait" };
+    if (!input.shouldExit) {
+      return { kind: "cancel", orderId: workingClose.id, reason: MARK_GONE_CLOSE_CANCEL };
+    }
+    if (closeLimitStale(Number(workingClose.limit_price), input.join)) {
+      return { kind: "cancel", orderId: workingClose.id, reason: STALE_CLOSE_CANCEL };
+    }
+    return { kind: "wait" };
+  }
+  if (overlapping.length) return { kind: "wait" };
+  if (!input.shouldExit || !input.quotesLive || !Number.isFinite(input.join)) return { kind: "skip" };
+  return { kind: "place" };
+}
+
+export function isQtyLockedCloseError(error: string): boolean {
+  const t = error.toLowerCase();
+  return (
+    t.includes("insufficient qty") ||
+    t.includes("qty available") ||
+    t.includes("held for orders") ||
+    t.includes("insufficient available")
+  );
 }
 
 export function skippedScanReason(input: {
@@ -148,6 +227,10 @@ export function uniqueIds(ids: string[], already: Iterable<string>): string[] {
 export function isGovernorOpenId(clientOrderId?: string): boolean {
   if (!clientOrderId?.startsWith("pop-alpha-")) return false;
   return !clientOrderId.startsWith("pop-alpha-x");
+}
+
+export function isGovernorCloseId(clientOrderId?: string): boolean {
+  return Boolean(clientOrderId?.startsWith("pop-alpha-x"));
 }
 
 export type SessionOpenOrder = {

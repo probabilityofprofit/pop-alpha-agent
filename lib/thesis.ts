@@ -60,10 +60,26 @@ export function templatesFor(hint: ThesisHint): Template[] {
   return ["iron_condor"];
 }
 
-export async function fetchThesis(tape: string[], env: NodeJS.ProcessEnv = process.env): Promise<ThesisResult> {
+export type ThesisContext = {
+  side?: "up" | "down";
+  cluster?: string;
+  sideSource?: "book" | "session";
+};
+
+export async function fetchThesis(
+  tape: string[],
+  env: NodeJS.ProcessEnv = process.env,
+  ctx: ThesisContext = {},
+): Promise<ThesisResult> {
   const key = env.OPENAI_API_KEY?.trim();
   if (!key) return { skip: true, reason: "modelSkip: OPENAI_API_KEY not set." };
   const model = env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
+  const lean =
+    ctx.sideSource === "book" ? "open-book majority" : ctx.sideSource === "session" ? "session" : "session";
+  const oneWay =
+    ctx.side != null
+      ? ` ${lean} is ${ctx.side}${ctx.cluster ? ` (${ctx.cluster} cluster)` : ""}. Last full day: new risk must follow the open packages that are currently profitable, and names that trade with those underlyings. Bias must be ${ctx.side === "up" ? "bull" : "bear"}. No irons. No opposite verticals.`
+      : "";
   const body = {
     model,
     temperature: 0,
@@ -76,7 +92,7 @@ export async function fetchThesis(tape: string[], env: NodeJS.ProcessEnv = proce
       },
       {
         role: "user",
-        content: `Tape: ${tape.join(", ") || "(empty)"}. Contest window ends 2026-09-04 9:30 ET. Prefer 0-21 DTE defined-risk. Same-day and weeklies that settle by 4 Sep are in play.`,
+        content: `Tape: ${tape.join(", ") || "(empty)"}.${oneWay} Contest window ends 2026-09-04 9:30 ET. Prefer 0-21 DTE defined-risk. Same-day and weeklies that settle by 4 Sep are in play.`,
       },
     ],
   };

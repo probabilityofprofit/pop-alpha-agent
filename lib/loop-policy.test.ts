@@ -3,9 +3,11 @@ import { describe, it } from "node:test";
 import {
   BOOK_CAP,
   BOOK_CAP_EXPANDED,
+  BOOK_CAP_THURSDAY,
   DEFAULT_MAX_QTY,
   EQUITY_FLOOR,
   EQUITY_FLOOR_EXPANDED,
+  EQUITY_FLOOR_THURSDAY,
   OPEN_SCAN_EVERY_MS,
   SCAN_EVERY_MS,
   bookCap,
@@ -18,13 +20,19 @@ import {
   countSessionOpens,
   fillsToLog,
   isGovernorOpenId,
+  isGovernorCloseId,
+  isQtyLockedCloseError,
   loopSendEnabled,
+  MARK_GONE_CLOSE_CANCEL,
+  nextClosePlan,
   packageOpenedAt,
   recordCloseFailure,
   sessionStoppedNames,
   skippedScanReason,
+  STALE_CLOSE_CANCEL,
   uniqueIds,
   workingDayOrders,
+  workingGovernorOpens,
 } from "./loop-policy";
 
 describe("loopSendEnabled", () => {
@@ -48,15 +56,19 @@ describe("opening scan cadence", () => {
 });
 
 describe("official week limits", () => {
-  it("keeps 10% / $90k on Tuesday and expands to 15% / $85k from Wednesday", () => {
+  it("steps 10% / $90k Tue, 15% / $85k Wed, 20% / $80k from Thursday", () => {
     assert.equal(BOOK_CAP, 0.1);
     assert.equal(BOOK_CAP_EXPANDED, 0.15);
+    assert.equal(BOOK_CAP_THURSDAY, 0.2);
     assert.equal(EQUITY_FLOOR, 90_000);
     assert.equal(EQUITY_FLOOR_EXPANDED, 85_000);
+    assert.equal(EQUITY_FLOOR_THURSDAY, 80_000);
     assert.equal(bookCap(new Date("2026-09-01T20:00:00Z")), 0.1);
     assert.equal(equityFloor(new Date("2026-09-01T20:00:00Z")), 90_000);
     assert.equal(bookCap(new Date("2026-09-02T13:30:00Z")), 0.15);
     assert.equal(equityFloor(new Date("2026-09-02T13:30:00Z")), 85_000);
+    assert.equal(bookCap(new Date("2026-09-03T13:30:00Z")), 0.2);
+    assert.equal(equityFloor(new Date("2026-09-03T13:30:00Z")), 80_000);
     assert.equal(DEFAULT_MAX_QTY, 12);
   });
 });
@@ -85,6 +97,63 @@ describe("workingDayOrders", () => {
       kept.map((o) => o.id),
       ["a", "c"],
     );
+  });
+  it("splits governor opens from closes", () => {
+    const orders = [
+      { id: "open", status: "new", client_order_id: "pop-alpha-2026-09-01T150000000Z" },
+      { id: "close", status: "new", client_order_id: "pop-alpha-x-2026-09-01T150100000Z" },
+    ];
+    assert.deepEqual(
+      workingGovernorOpens(orders).map((o) => o.id),
+      ["open"],
+    );
+  });
+});
+
+describe("nextClosePlan", () => {
+  const occs = ["SOXS260904C00055000", "SOXS260904C00060000"];
+  const working = {
+    id: "stuck",
+    status: "new",
+    client_order_id: "pop-alpha-x-2026-09-01T154144067Z",
+    limit_price: "0.62",
+    legs: [{ symbol: "SOXS260904C00055000" }, { symbol: "SOXS260904C00060000" }],
+  };
+  it("does not restack a marketable working close", () => {
+    assert.equal(
+      nextClosePlan({ occs, join: 0.6, shouldExit: true, quotesLive: true, orders: [working] }).kind,
+      "wait",
+    );
+  });
+  it("cancels when join walks through the working debit (SOXS 0.62 vs 1.15)", () => {
+    const plan = nextClosePlan({
+      occs,
+      join: 1.15,
+      shouldExit: true,
+      quotesLive: true,
+      orders: [working],
+    });
+    assert.deepEqual(plan, { kind: "cancel", orderId: "stuck", reason: STALE_CLOSE_CANCEL });
+  });
+  it("cancels a working close after the mark is no longer take/stop", () => {
+    const plan = nextClosePlan({
+      occs,
+      join: 0.5,
+      shouldExit: false,
+      quotesLive: true,
+      orders: [working],
+    });
+    assert.deepEqual(plan, { kind: "cancel", orderId: "stuck", reason: MARK_GONE_CLOSE_CANCEL });
+  });
+  it("places when take/stop fires and nothing is working", () => {
+    assert.equal(
+      nextClosePlan({ occs, join: 1.15, shouldExit: true, quotesLive: true, orders: [] }).kind,
+      "place",
+    );
+  });
+  it("does not treat qty-lock rejects as close failures", () => {
+    assert.equal(isQtyLockedCloseError("paper POST order 403: insufficient qty available"), true);
+    assert.equal(isQtyLockedCloseError("paper POST order 422: unknown symbol"), false);
   });
 });
 
@@ -193,6 +262,8 @@ describe("session opens vs closes", () => {
     assert.equal(n, 1);
     assert.equal(isGovernorOpenId("pop-alpha-2026-08-31T133420444Z"), true);
     assert.equal(isGovernorOpenId("pop-alpha-x-2026-08-31T133533082Z"), false);
+    assert.equal(isGovernorCloseId("pop-alpha-x-2026-08-31T133533082Z"), true);
+    assert.equal(isGovernorCloseId("pop-alpha-2026-08-31T133420444Z"), false);
   });
   it("collects names stopped this session from exit rows", () => {
     assert.deepEqual(

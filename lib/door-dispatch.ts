@@ -2,7 +2,7 @@
 
 import { appendLedger } from "../governor/ledger";
 import type { PlaceOptionOrder } from "../governor/door";
-import { clearCloseAttempts, loopSendEnabled, recordCloseFailure, uniqueIds } from "./loop-policy";
+import { clearCloseAttempts, isQtyLockedCloseError, loopSendEnabled, recordCloseFailure, uniqueIds } from "./loop-policy";
 import { cancelOrderById, closePosition, placeOptionOrder, writeHalt } from "./paper-door";
 import { LEDGER_PATH } from "./paths";
 
@@ -106,18 +106,28 @@ export async function dispatchPending(
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     if (pending.kind === "close" && pending.underlying) {
+      if (isQtyLockedCloseError(error)) {
+        return {
+          pending: { ...pending, error },
+          persist,
+          note: `Close rejected; qty locked by a working order. ${error}`,
+        };
+      }
       const failed = recordCloseFailure(persist.closeAttempts, pending.underlying);
       if (failed.legwise && pending.occs?.length) {
         const leftover: string[] = [];
+        let locked = false;
         for (const occ of pending.occs) {
           try {
             await closePosition(occ);
             appendLedger(LEDGER_PATH, { ts, kind: "order", door: "legwiseClose", occ, sent: true });
-          } catch {
+          } catch (legErr) {
             leftover.push(occ);
+            const msg = legErr instanceof Error ? legErr.message : String(legErr);
+            if (isQtyLockedCloseError(msg)) locked = true;
           }
         }
-        if (leftover.length) {
+        if (leftover.length && !locked) {
           writeHalt(`Leftover after two mleg closes and close_position: ${leftover.join(",")}`);
           appendLedger(LEDGER_PATH, {
             ts,
@@ -130,7 +140,9 @@ export async function dispatchPending(
           pending: { ...pending, error, sent: leftover.length === 0 },
           persist: { ...persist, closeAttempts: failed.attempts },
           note: leftover.length
-            ? `Close fallback wrote HALT. leftover ${leftover.join(",")}`
+            ? locked
+              ? `Close leftover is qty-locked. No HALT. ${leftover.join(",")}`
+              : `Close fallback wrote HALT. leftover ${leftover.join(",")}`
             : "Door used close_position after two mleg rejects.",
         };
       }

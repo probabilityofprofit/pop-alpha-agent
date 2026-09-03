@@ -79,7 +79,7 @@ export const CONTEST_EVENTS: ContestEvent[] = [
     at: et930("2026-09-01"),
     when: "Tue 1 – Wed 2 Sep",
     title: "Trade the open, mark the book",
-    body: "Tue: 10% book (~ten packages), mix 4/4/4. From Wed: 15% book (~fifteen), mix 5/5/5; halt $85k. One package per name. Fast tape 9:30–10:30 a.m. ET, then every 15 minutes. Last 15 minutes of RTH: no new risk.",
+    body: "Tue: 10% book (~ten packages), mix 4/4/4. Wed: 15% book (~fifteen), mix 5/5/5; halt $85k. Thu: 20% book, one-way cluster tape, session-side verticals only, mix 20 on that side; halt $80k. One package per name. Fast tape 9:30–10:30 a.m. ET, then every 15 minutes. Last 15 minutes of RTH: no new risk.",
     tag: "Official",
   },
   {
@@ -87,7 +87,7 @@ export const CONTEST_EVENTS: ContestEvent[] = [
     at: et930("2026-09-03"),
     when: "Thu 3 Sep · cash session",
     title: "Last full day for new risk",
-    body: "Thursday 0DTE is allowed. Assignment on Sep 3 expiries is in Alpaca’s Thursday EOD figure. After 12:45 p.m. PDT, cancel working DAY opens. Do not flatten the book tonight.",
+    body: "Thursday 0DTE is allowed. Tape follows profitable open packages and names that trade with those underlyings. Book 20%, session-side verticals only, mix 20 on that side, halt $80k from the open. Assignment on Sep 3 expiries is in Alpaca’s Thursday EOD figure. After 12:45 p.m. PDT, cancel working DAY opens. Do not flatten the book tonight.",
     tag: "Official",
   },
   {

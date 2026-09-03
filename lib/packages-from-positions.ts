@@ -10,6 +10,8 @@ export type OpenBook = {
   pkg: Package;
   qty: number;
   entryNet: number;
+  /** Sum of Alpaca unrealized_pl on the legs. */
+  pnl: number;
 };
 
 export function templateFromWorkingLegs(
@@ -120,7 +122,8 @@ function bookFromRows(
     maxProfit,
     maxLoss,
   };
-  return { pkg, qty, entryNet };
+  const pnl = rows.reduce((sum, pos) => sum + (Number(pos.unrealized_pl) || 0), 0);
+  return { pkg, qty, entryNet, pnl };
 }
 
 export function booksFromPositions(

@@ -75,7 +75,7 @@ export function LoopClient() {
             <span className="mono">{loop?.sessionYmd ?? "—"}</span>
             <Tip tip="Alpaca get_clock.is_open — new risk only when cash is open.">Clock</Tip>
             <span>{loop ? (loop.isOpen ? "Cash open" : "Cash closed") : desk?.clock?.is_open ? "Cash open" : "—"}</span>
-            <Tip tip="HALT file or equity at/under the live floor ($90k Tue, $85k from Wed). No new risk; flatten still allowed.">
+            <Tip tip="HALT file or equity at/under the live floor ($90k Tue, $85k Wed, $80k from Thu). No new risk; flatten still allowed.">
               Halt
             </Tip>
             <span className={desk?.halt || loop?.halt ? "down" : "up"}>
@@ -121,23 +121,23 @@ export function LoopClient() {
             <span className="mono">
               {(loop?.stoppedThisSession ?? []).length ? loop!.stoppedThisSession!.join(" ") : "—"}
             </span>
-            <Tip tip="Open defined-risk |max loss| × qty vs live book % (10% Tue, 15% from Wed).">Book</Tip>
+            <Tip tip="Open defined-risk |max loss| × qty vs live book % (10% Tue, 15% Wed, 20% from Thu).">Book</Tip>
             <span className="mono">
               {money(bookUsd)} / {money(bookCapUsd)} ({Math.round(liveBookFrac * 100)}%)
             </span>
-            <Tip tip="New risk stops at this equity. Paired with the live book hole ($90k Tue, $85k from Wed).">
+            <Tip tip="New risk stops at this equity. Paired with the live book hole ($90k Tue, $85k Wed, $80k from Thu).">
               Equity floor
             </Tip>
             <span className="mono">{money(liveFloor)}</span>
-            <Tip tip="Open + working DAY bull verticals. Cap 4 Tue / 5 from Wed.">Mix bull</Tip>
+            <Tip tip="Open + working DAY bull verticals. Cap 4 Tue / 5 Wed / 20 session-side from Thu.">Mix bull</Tip>
             <span className="mono">
               {mix.bull} / {liveMixCap}
             </span>
-            <Tip tip="Open + working DAY bear verticals. Cap 4 Tue / 5 from Wed.">Mix bear</Tip>
+            <Tip tip="Open + working DAY bear verticals. Cap 4 Tue / 5 Wed / 20 session-side from Thu.">Mix bear</Tip>
             <span className="mono">
               {mix.bear} / {liveMixCap}
             </span>
-            <Tip tip="Open + working DAY irons. Cap 4 Tue / 5 from Wed.">Mix iron</Tip>
+            <Tip tip="Open + working DAY irons. Cap 4 Tue / 5 Wed. No new irons from Thursday.">Mix iron</Tip>
             <span className="mono">
               {mix.iron} / {liveMixCap}
             </span>

@@ -3,12 +3,14 @@ import { describe, it } from "node:test";
 import {
   MIX_CAP,
   MIX_CAP_EXPANDED,
+  MIX_CAP_THURSDAY,
   MIX_CAP_REASON,
   allowedTemplates,
   mixAllows,
   mixBucket,
   mixCap,
   mixCounts,
+  sideTemplates,
 } from "./mix";
 import { ALL_TEMPLATES } from "./strikes";
 import { scanExpiry } from "./cycle";
@@ -35,13 +37,18 @@ describe("mix 4/4/4", () => {
     assert.equal(mixAllows(four, "iron_condor"), true);
   });
 
-  it("expands to five per bucket from Wednesday", () => {
+  it("expands to five per bucket from Wednesday and twenty session-side from Thursday", () => {
     assert.equal(MIX_CAP_EXPANDED, 5);
+    assert.equal(MIX_CAP_THURSDAY, 20);
     assert.equal(mixCap(new Date("2026-09-02T13:30:00Z")), 5);
+    assert.equal(mixCap(new Date("2026-09-03T13:30:00Z")), 20);
+    assert.deepEqual(sideTemplates("up"), ["bull_put", "bull_call"]);
+    assert.deepEqual(sideTemplates("down"), ["bear_call", "bear_put"]);
     const four = mixCounts(["bull_put", "bull_call", "bull_put", "bull_call"]);
     assert.equal(mixAllows(four, "bull_put", MIX_CAP_EXPANDED), true);
     const five = mixCounts(["bull_put", "bull_call", "bull_put", "bull_call", "bull_put"]);
     assert.equal(mixAllows(five, "bull_put", MIX_CAP_EXPANDED), false);
+    assert.equal(mixAllows(five, "bull_put", MIX_CAP_THURSDAY), true);
   });
 
   it("clears all templates when every bucket is full", () => {

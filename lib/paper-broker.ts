@@ -133,17 +133,35 @@ export async function getOrders(): Promise<PaperOrder[]> {
   return getJson<PaperOrder[]>(url, "paper");
 }
 
-export async function getStockSpot(symbol: string, feed = process.env.ALPACA_DATA_FEED || "iex"): Promise<number> {
-  const url = `${DATA_ORIGIN}/v2/stocks/${encodeURIComponent(symbol)}/snapshot?feed=${encodeURIComponent(feed)}`;
-  const snap = await getJson<{
-    latestTrade?: { p?: number };
-    latestQuote?: { ap?: number; bp?: number };
-    dailyBar?: { c?: number };
-  }>(url, "data");
+type StockSnap = {
+  latestTrade?: { p?: number };
+  latestQuote?: { ap?: number; bp?: number };
+  dailyBar?: { c?: number };
+  prevDailyBar?: { c?: number };
+};
+
+export type StockMark = { last: number; prevClose?: number; changePct?: number };
+
+function lastFromSnap(snap: StockSnap): number | undefined {
   const mid =
     snap.latestQuote?.bp && snap.latestQuote?.ap ? (snap.latestQuote.bp + snap.latestQuote.ap) / 2 : null;
   const px = snap.latestTrade?.p ?? mid ?? snap.dailyBar?.c;
-  if (!(px && px > 0)) throw new Error(`No spot for ${symbol}.`);
+  return px && px > 0 ? px : undefined;
+}
+
+function markFromSnap(snap: StockSnap): StockMark | undefined {
+  const last = lastFromSnap(snap);
+  if (last == null) return undefined;
+  const prevClose = snap.prevDailyBar?.c;
+  const changePct = prevClose && prevClose > 0 ? ((last - prevClose) / prevClose) * 100 : undefined;
+  return { last, prevClose: prevClose && prevClose > 0 ? prevClose : undefined, changePct };
+}
+
+export async function getStockSpot(symbol: string, feed = process.env.ALPACA_DATA_FEED || "iex"): Promise<number> {
+  const url = `${DATA_ORIGIN}/v2/stocks/${encodeURIComponent(symbol)}/snapshot?feed=${encodeURIComponent(feed)}`;
+  const snap = await getJson<StockSnap>(url, "data");
+  const px = lastFromSnap(snap);
+  if (px == null) throw new Error(`No spot for ${symbol}.`);
   return px;
 }
 
@@ -190,35 +208,47 @@ export async function getMostActives(): Promise<Array<{ symbol: string; volume: 
   return body.most_actives ?? [];
 }
 
-export async function getStockMovers(): Promise<Array<{ symbol: string; price?: number }>> {
-  const url = `${DATA_ORIGIN}/v1beta1/screener/stocks/movers?top=10`;
+export type StockMover = { symbol: string; price?: number; changePct?: number };
+
+export async function getStockMovers(top = 10): Promise<StockMover[]> {
+  const url = `${DATA_ORIGIN}/v1beta1/screener/stocks/movers?top=${encodeURIComponent(String(top))}`;
   const body = await getJson<{
-    gainers?: Array<{ symbol: string; price?: number }>;
-    losers?: Array<{ symbol: string; price?: number }>;
+    gainers?: Array<{ symbol: string; price?: number; percent_change?: number }>;
+    losers?: Array<{ symbol: string; price?: number; percent_change?: number }>;
   }>(url, "data");
-  return [...(body.gainers ?? []), ...(body.losers ?? [])];
+  const map = (row: { symbol: string; price?: number; percent_change?: number }): StockMover => ({
+    symbol: row.symbol,
+    price: row.price,
+    changePct: row.percent_change,
+  });
+  return [...(body.gainers ?? []).map(map), ...(body.losers ?? []).map(map)];
 }
 
-export async function getStockSnapshots(symbols: string[]): Promise<Record<string, number>> {
+export async function getStockMarks(symbols: string[]): Promise<Record<string, StockMark>> {
   const unique = [...new Set(symbols.filter(Boolean))];
   if (!unique.length) return {};
   const feed = process.env.ALPACA_DATA_FEED || "iex";
   const url = `${DATA_ORIGIN}/v2/stocks/snapshots?symbols=${encodeURIComponent(unique.join(","))}&feed=${encodeURIComponent(feed)}`;
   const body = await getJson<
-    Record<string, { latestTrade?: { p?: number }; latestQuote?: { ap?: number; bp?: number }; dailyBar?: { c?: number } }> & {
-      snapshots?: Record<string, { latestTrade?: { p?: number }; latestQuote?: { ap?: number; bp?: number }; dailyBar?: { c?: number } }>;
+    Record<string, StockSnap> & {
+      snapshots?: Record<string, StockSnap>;
     }
   >(url, "data");
   const table = body.snapshots ?? body;
-  const out: Record<string, number> = {};
+  const out: Record<string, StockMark> = {};
   for (const [sym, snap] of Object.entries(table ?? {})) {
     if (!snap || typeof snap !== "object" || Array.isArray(snap)) continue;
-    if (!("latestTrade" in snap || "latestQuote" in snap || "dailyBar" in snap)) continue;
-    const mid =
-      snap.latestQuote?.bp && snap.latestQuote?.ap ? (snap.latestQuote.bp + snap.latestQuote.ap) / 2 : null;
-    const px = snap.latestTrade?.p ?? mid ?? snap.dailyBar?.c;
-    if (px && px > 0) out[sym] = px;
+    if (!("latestTrade" in snap || "latestQuote" in snap || "dailyBar" in snap || "prevDailyBar" in snap)) continue;
+    const mark = markFromSnap(snap);
+    if (mark) out[sym] = mark;
   }
+  return out;
+}
+
+export async function getStockSnapshots(symbols: string[]): Promise<Record<string, number>> {
+  const marks = await getStockMarks(symbols);
+  const out: Record<string, number> = {};
+  for (const [sym, mark] of Object.entries(marks)) out[sym] = mark.last;
   return out;
 }
 

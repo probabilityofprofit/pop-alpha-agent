@@ -84,3 +84,12 @@ export function closeJoinLimit(pkg: Package): number {
   }
   return Math.round(pay * 100) / 100;
 }
+
+/** Shorts need a live ask to join. A zero long bid is conservative (pay more). */
+export function closeQuotesLive(pkg: Package): boolean {
+  return pkg.legs.every((leg) => {
+    if (!(leg.ask >= 0) || !(leg.bid >= 0)) return false;
+    if (leg.side === "sell") return leg.ask > 0;
+    return Number.isFinite(leg.bid);
+  });
+}
