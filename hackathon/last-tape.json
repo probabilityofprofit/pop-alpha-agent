@@ -1,0 +1,543 @@
+{
+  "at": "2026-09-03T17:01:05.512Z",
+  "kept": [],
+  "alreadyOpen": [
+    "AAL",
+    "AAPL",
+    "AMZN",
+    "GOOG",
+    "GOOGL",
+    "META",
+    "MSFT",
+    "NVDA",
+    "SNXX",
+    "TSLA"
+  ],
+  "stoppedThisSession": [
+    "SQQQ",
+    "PCG",
+    "TQQQ",
+    "SPY"
+  ],
+  "rows": [
+    {
+      "symbol": "MSAIW",
+      "last": 0.0189,
+      "optionVolume": 0,
+      "changePct": 18800,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "BIAFW",
+      "last": 0.47,
+      "optionVolume": 0,
+      "changePct": 291.66666666666663,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "NCT",
+      "last": 0.6492,
+      "optionVolume": 0,
+      "changePct": -87.01599999999999,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "ADBT",
+      "last": 0.3271,
+      "optionVolume": 87040426,
+      "changePct": -80.87134502923978,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "BRLSW",
+      "last": 0.05,
+      "optionVolume": 0,
+      "changePct": 77.93594306049823,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "TANH",
+      "last": 0.3485,
+      "optionVolume": 82803862,
+      "changePct": 69.1747572815534,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "CHPT",
+      "last": 8.81,
+      "optionVolume": 0,
+      "changePct": 68.77394636015327,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "HUBCZ",
+      "last": 0.0175,
+      "optionVolume": 0,
+      "changePct": 66.66666666666667,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "ACONW",
+      "last": 0.0498,
+      "optionVolume": 0,
+      "changePct": 65.99999999999999,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SPWR",
+      "last": 0.3968,
+      "optionVolume": 241360747,
+      "changePct": 54.517133956386296,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "CSHRW",
+      "last": 1.14,
+      "optionVolume": 0,
+      "changePct": 51.99999999999999,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "GIXI",
+      "last": 6.58,
+      "optionVolume": 0,
+      "changePct": -45.17,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "RARE",
+      "last": 14.745,
+      "optionVolume": 0,
+      "changePct": -44.463276836158194,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "GIPR",
+      "last": 0.5612,
+      "optionVolume": 94348935,
+      "changePct": 43.456032719836415,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "DSS",
+      "last": 0.7712,
+      "optionVolume": 91702680,
+      "changePct": 42.366623592394326,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "MIMI",
+      "last": 0.9217,
+      "optionVolume": 130954834,
+      "changePct": 41.75638265149184,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SNOU",
+      "last": 81.105,
+      "optionVolume": 0,
+      "changePct": 40.17455928102317,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "HOOC",
+      "last": 19.85,
+      "optionVolume": 0,
+      "changePct": 38.9083275017495,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "NCPL",
+      "last": 0.6455,
+      "optionVolume": 0,
+      "changePct": -36.71568627450981,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SHFSW",
+      "last": 0.0193,
+      "optionVolume": 0,
+      "changePct": 34.02777777777779,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "GSUN",
+      "last": 0.2949,
+      "optionVolume": 0,
+      "changePct": 33.01759133964816,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "MDCX",
+      "last": 0.1714,
+      "optionVolume": 86572140,
+      "changePct": -32.652259332023576,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "ALP",
+      "last": 0.122,
+      "optionVolume": 0,
+      "changePct": -31.805477920626053,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SEATW",
+      "last": 0.0301,
+      "optionVolume": 0,
+      "changePct": -31.74603174603175,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "RACC",
+      "last": 13.945,
+      "optionVolume": 0,
+      "changePct": -30.621890547263686,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "CRCA",
+      "last": 28.79,
+      "optionVolume": 0,
+      "changePct": 29.509671614934767,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "CRCG",
+      "last": 19.41,
+      "optionVolume": 0,
+      "changePct": 29.313790806129248,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "CRCD",
+      "last": 1.715,
+      "optionVolume": 0,
+      "changePct": -28.69022869022868,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "PSNY",
+      "last": 8.59,
+      "optionVolume": 0,
+      "changePct": -28.476269775187347,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "MSTZ",
+      "last": 4.03,
+      "optionVolume": 45432975,
+      "changePct": -27.713004484304932,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SMST",
+      "last": 20.03,
+      "optionVolume": 0,
+      "changePct": -27.480086893555395,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "SDST",
+      "last": 0.185,
+      "optionVolume": 0,
+      "changePct": -27.450980392156865,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SSM",
+      "last": 3.57,
+      "optionVolume": 0,
+      "changePct": -25.235602094240843,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "GELS",
+      "last": 0.8351,
+      "optionVolume": 63313266,
+      "changePct": 22.17995610826627,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "HOOX",
+      "last": 45.26,
+      "optionVolume": 0,
+      "changePct": 19.73544973544974,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "NAMMW",
+      "last": 0.19,
+      "optionVolume": 0,
+      "changePct": -17.39130434782609,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "TSLL",
+      "last": 10.67,
+      "optionVolume": 97109425,
+      "changePct": 13.995726495726501,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "TSLG",
+      "last": 5.3,
+      "optionVolume": 51361152,
+      "changePct": 13.978494623655902,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "BMNR",
+      "last": 25.82,
+      "optionVolume": 38076160,
+      "changePct": 11.968777103209028,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "GPRO",
+      "last": 1.51,
+      "optionVolume": 141599076,
+      "changePct": -11.176470588235292,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "BTAI",
+      "last": 0.1201,
+      "optionVolume": 140798982,
+      "changePct": 9.082652134423247,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "MARA",
+      "last": 11.415,
+      "optionVolume": 38596444,
+      "changePct": 9.025787965616031,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "SPCX",
+      "last": 150.72,
+      "optionVolume": 80402262,
+      "changePct": 7.091089953105009,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "GPUS",
+      "last": 0.186,
+      "optionVolume": 89041696,
+      "changePct": -6.953476738369183,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "TSLA",
+      "last": 381.7,
+      "optionVolume": 43588298,
+      "changePct": 6.888826659199094,
+      "kept": false,
+      "reason": "Already has a package."
+    },
+    {
+      "symbol": "BITO",
+      "last": 10.9,
+      "optionVolume": 58374345,
+      "changePct": 4.8076923076923075,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "IBIT",
+      "last": 45.865,
+      "optionVolume": 53845214,
+      "changePct": 4.7385247773464325,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "AVGO",
+      "last": 355.89,
+      "optionVolume": 39565293,
+      "changePct": -3.151277655318813,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "NVD",
+      "last": 3.69,
+      "optionVolume": 66374291,
+      "changePct": -2.89473684210526,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SKYAW",
+      "last": 0.0293,
+      "optionVolume": 0,
+      "changePct": 2.447552447552445,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "CRACW",
+      "last": 0.06,
+      "optionVolume": 0,
+      "changePct": 2.3890784982935127,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "NVDA",
+      "last": 227.57,
+      "optionVolume": 68438029,
+      "changePct": 1.396840956178845,
+      "kept": false,
+      "reason": "Already has a package."
+    },
+    {
+      "symbol": "SNXX",
+      "last": 14.195,
+      "optionVolume": 37643243,
+      "changePct": 1.3928571428571448,
+      "kept": false,
+      "reason": "Already has a package."
+    },
+    {
+      "symbol": "DFDVW",
+      "last": 0.75,
+      "optionVolume": 0,
+      "changePct": 1.3513513513513526,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "NOK",
+      "last": 9.715,
+      "optionVolume": 54999732,
+      "changePct": -1.2703252032520325,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SLND.WS",
+      "last": 0.0343,
+      "optionVolume": 0,
+      "changePct": -1.1527377521613962,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "QQQ",
+      "last": 717.37,
+      "optionVolume": 0,
+      "changePct": 1.13488975356679,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "NU",
+      "last": 15.555,
+      "optionVolume": 43721643,
+      "changePct": 1.0721247563352772,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "SPY",
+      "last": 772.755,
+      "optionVolume": 0,
+      "changePct": 0.9965626756237501,
+      "kept": false,
+      "reason": "Stopped this session."
+    },
+    {
+      "symbol": "RITR",
+      "last": 0.0997,
+      "optionVolume": 55171425,
+      "changePct": 0.6054490413723546,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "NIO",
+      "last": 3.865,
+      "optionVolume": 40467629,
+      "changePct": 0.3896103896103928,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SPWRW",
+      "last": 0.0699,
+      "optionVolume": 0,
+      "changePct": -0.14285714285714693,
+      "kept": false,
+      "reason": "Last under $10."
+    },
+    {
+      "symbol": "SOXL",
+      "last": 106.16,
+      "optionVolume": 42105328,
+      "changePct": -0.11290929619872463,
+      "kept": false,
+      "reason": "No profitable side to follow."
+    },
+    {
+      "symbol": "ONDS",
+      "last": 7.625,
+      "optionVolume": 39771758,
+      "changePct": 0.06561679790026106,
+      "kept": false,
+      "reason": "Last under $10."
+    }
+  ],
+  "decision": "no_trade",
+  "thesis": {
+    "skip": false,
+    "underlying": "SPY",
+    "structure": "iron_condor",
+    "reason": "Market is expected to remain within a defined range leading up to the contest window end."
+  }
+}

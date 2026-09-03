@@ -5,11 +5,10 @@ dist/
 .env
 .env.local
 *.log
-hackathon/ledger.jsonl
-hackathon/last-scan.json
-hackathon/last-tape.json
-hackathon/loop-status.json
+# Runtime halt / contest snapshots stay local-only.
 hackathon/HALT
 hackathon/CONTEST.json
+# Desk baseline (ledger, last-scan, last-tape, loop-status) is committed
+# so Heroku deploys show the same cockpit as local.
 data/
 .DS_Store
